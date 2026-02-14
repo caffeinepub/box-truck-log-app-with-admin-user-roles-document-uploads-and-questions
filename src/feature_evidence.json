@@ -1,0 +1,154 @@
+{
+  "kind": "feature_evidence_report",
+  "features": [
+    {
+      "featureId": "feature-implement-internet-identity-authentication-and-role-based-access-so-the-app-supports-two-roles-admin-and-user-users-can-access-their-own-log-entries-uploads-and-questions-admins-can-access-all-users-logs-uploaded-documents-and-questions",
+      "featureTitle": "Implement Internet Identity authentication and role-based access so the app supports two roles: Admin and User. Users can access their own log entries, uploads, and questions; Admins can access all users’ logs, uploaded documents, and questions.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/auth/ProfileSetupModal.tsx",
+        "frontend/src/components/header/AppHeader.tsx",
+        "frontend/src/main.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-a-truck-log-feature-for-a-28ft-box-truck-where-signed-in-users-can-create-view-edit-and-delete-their-own-log-entries-with-at-minimum-date-time-optional-title-notes-and-an-optional-numeric-field-e-g-mileage-odometer-admins-can-view-all-users-log-entries",
+      "featureTitle": "Create a truck log feature for a 28ft box truck where signed-in users can create, view, edit, and delete their own log entries with at minimum: date/time, optional title, notes, and an optional numeric field (e.g., mileage/odometer). Admins can view all users’ log entries.",
+      "files": [
+        "frontend/src/pages/admin/AllLogsPage.tsx",
+        "frontend/src/pages/user/MyLogsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-document-upload-for-users-users-can-upload-documents-store-file-bytes-metadata-such-as-filename-content-type-size-upload-timestamp-and-view-download-their-own-uploads-admins-can-view-download-all-users-uploaded-documents",
+      "featureTitle": "Add document upload for users: users can upload documents (store file bytes + metadata such as filename, content type, size, upload timestamp) and view/download their own uploads. Admins can view/download all users’ uploaded documents.",
+      "files": [
+        "frontend/src/pages/admin/AllDocumentsPage.tsx",
+        "frontend/src/pages/user/MyDocumentsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-questions-feature-users-can-submit-questions-text-timestamp-and-view-their-own-submitted-questions-admins-can-view-questions-from-all-users-and-manage-them-by-setting-a-simple-status-e-g-open-answered-and-optionally-adding-an-admin-reply",
+      "featureTitle": "Add a questions feature: users can submit questions (text + timestamp) and view their own submitted questions. Admins can view questions from all users and manage them by setting a simple status (e.g., Open/Answered) and optionally adding an admin reply.",
+      "files": [
+        "frontend/src/pages/admin/AllQuestionsPage.tsx",
+        "frontend/src/pages/user/MyQuestionsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-provide-an-admin-dashboard-admin-log-and-a-user-dashboard-users-log-with-navigation-between-truck-logs-documents-and-questions-the-admin-dashboard-must-include-overviews-and-lists-for-all-users-data-the-user-dashboard-must-show-only-the-signed-in-user-s-data",
+      "featureTitle": "Provide an Admin dashboard (“admin log”) and a User dashboard (“users log”) with navigation between: Truck Logs, Documents, and Questions. The Admin dashboard must include overviews and lists for all users’ data; the User dashboard must show only the signed-in user’s data.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+        "frontend/src/pages/user/UserDashboardLayout.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-define-a-consistent-distinctive-visual-theme-for-the-app-colors-typography-spacing-and-component-styling-appropriate-for-a-fleet-truck-operations-log-product-and-apply-it-consistently-across-dashboards-tables-lists-and-forms-avoid-a-blue-purple-theme",
+      "featureTitle": "Define a consistent, distinctive visual theme for the app (colors, typography, spacing, and component styling) appropriate for a “fleet/truck operations log” product, and apply it consistently across dashboards, tables/lists, and forms (avoid a blue/purple theme).",
+      "files": [
+        "frontend/src/index.css",
+        "frontend/tailwind.config.js"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-the-required-generated-image-asset-s-to-the-frontend-as-static-files-under-frontend-public-assets-generated-and-use-them-in-the-ui-e-g-app-header-login-screen",
+      "featureTitle": "Add the required generated image asset(s) to the frontend as static files under frontend/public/assets/generated and use them in the UI (e.g., app header/login screen).",
+      "files": [
+        "frontend/src/components/header/AppHeader.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    }
+  ]
+}

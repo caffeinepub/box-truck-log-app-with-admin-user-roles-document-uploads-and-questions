@@ -1,0 +1,17 @@
+{
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup, authentication flow, role-based routing (admin/user), profile setup modal, and theme provider integration.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profiles, authorization checks, log entries, document uploads, and questions with proper cache invalidation and error handling.",
+  "frontend/src/components/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup that prompts authenticated users to enter their display name.",
+  "frontend/src/components/header/AppHeader.tsx": "Application header with truck logo, app branding, user profile display, role badge, and login/logout functionality.",
+  "frontend/src/pages/LoginPage.tsx": "Landing page with feature overview cards, Internet Identity login button, and automatic redirect to role-appropriate dashboard after authentication.",
+  "frontend/src/pages/user/UserDashboardLayout.tsx": "User dashboard layout with navigation tabs for My Logs, My Documents, and My Questions sections.",
+  "frontend/src/pages/admin/AdminDashboardLayout.tsx": "Admin dashboard layout with overview statistics cards and navigation tabs for All Logs, All Documents, and All Questions sections.",
+  "frontend/src/pages/user/MyLogsPage.tsx": "User page for creating, viewing, editing, and deleting personal truck log entries with title, notes, and mileage fields.",
+  "frontend/src/pages/user/MyDocumentsPage.tsx": "User page for uploading documents with progress tracking and viewing/downloading personal uploaded files.",
+  "frontend/src/pages/user/MyQuestionsPage.tsx": "User page for submitting questions and viewing submitted questions with admin replies and status badges.",
+  "frontend/src/pages/admin/AllLogsPage.tsx": "Admin page displaying all users' log entries with user filtering and profile name display.",
+  "frontend/src/pages/admin/AllDocumentsPage.tsx": "Admin page displaying all users' uploaded documents with user filtering and download/view capabilities.",
+  "frontend/src/pages/admin/AllQuestionsPage.tsx": "Admin page for managing all users' questions with status updates using QuestionStatus enum, reply functionality, and filtering by user and status.",
+  "frontend/src/index.css": "Global styles with OKLCH color system featuring charcoal/graphite and safety orange theme for both light and dark modes.",
+  "frontend/tailwind.config.js": "Tailwind configuration with extended color tokens, border radius, shadows, and animations matching the truck-ops theme."
+}

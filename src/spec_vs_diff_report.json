@@ -1,0 +1,52 @@
+{
+  "kind": "spec_vs_diff_report",
+  "version": "1.0",
+  "generatedAt": "2026-02-14T00:08:58.268Z",
+  "summary": "Diff adds a Motoko backend actor with access control + blob storage mixins and new React frontend routes/pages for admin/user dashboards (logs/documents/questions), Internet Identity auth hook usage, and a new visual theme. No modified/removed files are shown; several added files are omitted/truncated, limiting verification of some backend and asset requirements.",
+  "missing_requirements": [],
+  "hallucinated_features": [
+    {
+      "description": "Admin-role initialization via a secret URL parameter/token (\"caffeineAdminToken\") used to initialize backend access control.",
+      "reason": "BuildRequest specifies Internet Identity auth with Admin/User roles but does not request or describe a secret-token mechanism for establishing admin privileges via URL parameters.",
+      "evidence": [
+        "frontend/src/hooks/useActor.ts",
+        "frontend/src/utils/urlParams.ts"
+      ]
+    },
+    {
+      "description": "Caffeine.ai promotional footer link on the login page.",
+      "reason": "Not requested by the BuildRequest requirements or acceptance criteria.",
+      "evidence": [
+        "frontend/src/pages/LoginPage.tsx"
+      ]
+    }
+  ],
+  "confidence": 0.55,
+  "changed_files": [
+    "all_files_summary.json",
+    "backend/main.mo",
+    "frontend-file-summaries.txt",
+    "frontend/index.css",
+    "frontend/index.html",
+    "frontend/src/App.tsx",
+    "frontend/src/components/auth/ProfileSetupModal.tsx",
+    "frontend/src/components/header/AppHeader.tsx",
+    "frontend/src/hooks/useActor.ts",
+    "frontend/src/hooks/useInternetIdentity.ts",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/index.css",
+    "frontend/src/main.tsx",
+    "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+    "frontend/src/pages/admin/AllDocumentsPage.tsx",
+    "frontend/src/pages/admin/AllLogsPage.tsx",
+    "frontend/src/pages/admin/AllQuestionsPage.tsx",
+    "frontend/src/pages/user/MyDocumentsPage.tsx",
+    "frontend/src/pages/user/MyLogsPage.tsx",
+    "frontend/src/pages/user/MyQuestionsPage.tsx",
+    "frontend/src/pages/user/UserDashboardLayout.tsx",
+    "frontend/src/utils/urlParams.ts",
+    "frontend/tailwind.config.js",
+    "project_state.json"
+  ]
+}

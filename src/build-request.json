@@ -1,0 +1,156 @@
+{
+  "kind": "build_request",
+  "title": "Box Truck Log App with Admin/User Roles, Document Uploads, and Questions",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Implement Internet Identity authentication and role-based access so the app supports two roles: Admin and User. Users can access their own log entries, uploads, and questions; Admins can access all users’ logs, uploaded documents, and questions.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ],
+        "quotes": [
+          "I would like to create a web based log for a 28ft box truck , have a admin log and users log which the admin see uploaded  docs and questions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Unauthenticated visitors are prompted to sign in with Internet Identity.",
+        "After sign-in, the UI clearly indicates whether the signed-in user is Admin or User.",
+        "User-only views do not show other users’ content.",
+        "Admin views can list and open content created by any user.",
+        "Backend enforces authorization checks (not only the UI)."
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Create a truck log feature for a 28ft box truck where signed-in users can create, view, edit, and delete their own log entries with at minimum: date/time, optional title, notes, and an optional numeric field (e.g., mileage/odometer). Admins can view all users’ log entries.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ],
+        "quotes": [
+          "create a web based log for a 28ft box truck , have a admin log and users log"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A signed-in user can create a new log entry and see it appear in their log list.",
+        "A signed-in user can edit and delete their own log entries.",
+        "A signed-in user cannot edit/delete log entries belonging to another user.",
+        "An admin can view an aggregate list of all log entries and filter/group by user.",
+        "Log entries persist across page refreshes."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add document upload for users: users can upload documents (store file bytes + metadata such as filename, content type, size, upload timestamp) and view/download their own uploads. Admins can view/download all users’ uploaded documents.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ],
+        "quotes": [
+          "admin see uploaded  docs"
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can upload a document and see it listed with filename, size, and upload time.",
+        "User can download/view a previously uploaded document.",
+        "Admin can browse documents across all users and download them.",
+        "Backend stores document metadata and bytes and returns correct bytes on download.",
+        "UI shows a clear error for disallowed/oversized uploads, and the upload does not partially persist."
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a questions feature: users can submit questions (text + timestamp) and view their own submitted questions. Admins can view questions from all users and manage them by setting a simple status (e.g., Open/Answered) and optionally adding an admin reply.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ],
+        "quotes": [
+          "and questions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "User can submit a question and see it listed in their questions view.",
+        "Admin can see all users’ questions in an admin view.",
+        "Admin can change a question’s status (Open/Answered) and the change persists.",
+        "If admin replies are enabled, a user can see the admin reply for their question.",
+        "Backend prevents non-admins from changing other users’ question status/replies."
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Provide an Admin dashboard (“admin log”) and a User dashboard (“users log”) with navigation between: Truck Logs, Documents, and Questions. The Admin dashboard must include overviews and lists for all users’ data; the User dashboard must show only the signed-in user’s data.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ],
+        "quotes": [
+          "have a admin log and users log which the admin see uploaded  docs and questions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After sign-in, users land on a dashboard appropriate to their role.",
+        "Navigation allows switching between Logs, Documents, and Questions within the role’s permitted scope.",
+        "Admin dashboard includes at least: All Logs, All Documents, All Questions views.",
+        "User dashboard includes at least: My Logs, My Documents, My Questions views.",
+        "Attempting to access admin routes/views as a non-admin redirects or shows an authorization error."
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Define a consistent, distinctive visual theme for the app (colors, typography, spacing, and component styling) appropriate for a “fleet/truck operations log” product, and apply it consistently across dashboards, tables/lists, and forms (avoid a blue/purple theme).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "All primary pages share a consistent layout, typography, and color system.",
+        "Forms, buttons, and lists/tables use consistent variants and spacing.",
+        "The theme is not dominated by blue/purple as primary branding colors.",
+        "The UI is usable on mobile and desktop (responsive layout for dashboards and lists)."
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add the required generated image asset(s) to the frontend as static files under frontend/public/assets/generated and use them in the UI (e.g., app header/login screen).",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "recent-messages-2"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Generated image files exist under frontend/public/assets/generated with the exact filenames specified in imageRequirements.required.",
+        "At least one primary screen (e.g., header or landing/dashboard) displays the generated image.",
+        "No backend endpoints are used to serve the generated static image assets."
+      ]
+    }
+  ],
+  "constraints": [
+    "Backend must remain a single Motoko actor (all Motoko logic in one main actor file).",
+    "Use Internet Identity for authentication (no third-party auth providers).",
+    "Do not modify any frontend files under frontend/src/components/ui or other immutable paths listed in SYSTEM_CONTEXT; compose them instead.",
+    "No external databases or third-party storage services; persist data in-canister."
+  ],
+  "nonGoals": [
+    "Route planning, GPS/location tracking, or maps/geolocation features.",
+    "Real-time chat or WebSocket-based live updates.",
+    "Email/SMS notifications.",
+    "Integration with external cloud storage (Google Drive/Dropbox/S3) for documents."
+  ],
+  "imageRequirements": {
+    "required": [
+      "Minimal monochrome line-art illustration of a 28ft box truck, front 3/4 view, clean vector style (truck-logo.dim_512x512.png)"
+    ],
+    "edits": []
+  }
+}
