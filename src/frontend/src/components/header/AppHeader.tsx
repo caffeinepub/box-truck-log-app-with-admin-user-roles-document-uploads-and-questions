@@ -1,36 +1,25 @@
-import { useInternetIdentity } from '../../hooks/useInternetIdentity';
+import { useLocalAuth } from '../../hooks/useLocalAuth';
 import { useGetCallerUserProfile, useIsCallerAdmin } from '../../hooks/useQueries';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Truck, LogOut, LogIn } from 'lucide-react';
-import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { LogOut, LogIn } from 'lucide-react';
+import { useNavigate } from '@tanstack/react-router';
 
 export default function AppHeader() {
-  const { identity, login, clear, isLoggingIn } = useInternetIdentity();
+  const { isAuthenticated, logout } = useLocalAuth();
   const { data: userProfile } = useGetCallerUserProfile();
   const { data: isAdmin } = useIsCallerAdmin();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const routerState = useRouterState();
-
-  const isAuthenticated = !!identity;
 
   const handleAuth = async () => {
     if (isAuthenticated) {
-      await clear();
+      logout();
       queryClient.clear();
       navigate({ to: '/' });
     } else {
-      try {
-        await login();
-      } catch (error: any) {
-        console.error('Login error:', error);
-        if (error.message === 'User is already authenticated') {
-          await clear();
-          setTimeout(() => login(), 300);
-        }
-      }
+      navigate({ to: '/' });
     }
   };
 
@@ -53,8 +42,8 @@ export default function AppHeader() {
           <button onClick={handleLogoClick} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <img src="/assets/generated/truck-logo.dim_512x512.png" alt="Truck Logo" className="w-10 h-10" />
             <div className="flex flex-col items-start">
-              <h1 className="text-xl font-bold text-foreground">Box Truck Log</h1>
-              <p className="text-xs text-muted-foreground">28ft Fleet Management</p>
+              <h1 className="text-xl font-bold text-foreground">Berks Bus Service</h1>
+              <p className="text-xs text-muted-foreground">Fleet Management System</p>
             </div>
           </button>
 
@@ -73,21 +62,18 @@ export default function AppHeader() {
             )}
             <Button
               onClick={handleAuth}
-              disabled={isLoggingIn}
               variant={isAuthenticated ? 'outline' : 'default'}
               size="sm"
             >
-              {isLoggingIn ? (
-                'Logging in...'
-              ) : isAuthenticated ? (
+              {isAuthenticated ? (
                 <>
                   <LogOut className="w-4 h-4 mr-2" />
-                  Logout
+                  Sign Out
                 </>
               ) : (
                 <>
                   <LogIn className="w-4 h-4 mr-2" />
-                  Login
+                  Sign In
                 </>
               )}
             </Button>

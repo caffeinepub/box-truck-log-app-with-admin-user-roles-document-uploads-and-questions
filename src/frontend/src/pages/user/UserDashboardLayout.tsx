@@ -1,6 +1,6 @@
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { FileText, Upload, HelpCircle } from 'lucide-react';
+import { FileText, Upload, HelpCircle, ClipboardCheck } from 'lucide-react';
 import { useEffect } from 'react';
 
 export default function UserDashboardLayout() {
@@ -18,13 +18,14 @@ export default function UserDashboardLayout() {
     { path: '/user/logs', label: 'My Logs', icon: FileText },
     { path: '/user/documents', label: 'My Documents', icon: Upload },
     { path: '/user/questions', label: 'My Questions', icon: HelpCircle },
+    { path: '/user/checklists', label: 'My Checklists', icon: ClipboardCheck },
   ];
 
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">User Dashboard</h2>
-        <p className="text-muted-foreground">Manage your truck logs, documents, and questions</p>
+        <p className="text-muted-foreground">Manage your truck logs, documents, questions, and checklists</p>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-6 border-b border-border pb-4">

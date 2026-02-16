@@ -10,6 +10,18 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
+export interface Category { 'id' : string, 'name' : string }
+export interface ChecklistConfig {
+  'categories' : Array<Category>,
+  'items' : Array<ChecklistItem>,
+}
+export interface ChecklistItem {
+  'id' : string,
+  'categoryId' : string,
+  'defaultChecked' : boolean,
+  'name' : string,
+  'prompt' : string,
+}
 export type ExternalBlob = Uint8Array;
 export interface LogEntry {
   'id' : string,
@@ -18,6 +30,13 @@ export interface LogEntry {
   'owner' : Principal,
   'notes' : string,
   'timestamp' : Time,
+}
+export interface PreTripChecklist {
+  'driverId' : Principal,
+  'checked' : Array<[string, boolean]>,
+  'signature' : string,
+  'timestamp' : Time,
+  'driverName' : string,
 }
 export interface Question {
   'id' : string,
@@ -29,6 +48,14 @@ export interface Question {
 }
 export type QuestionStatus = { 'open' : null } |
   { 'answered' : null };
+export interface SavedChecklist {
+  'driverId' : Principal,
+  'checked' : Array<[string, boolean]>,
+  'signature' : string,
+  'timestamp' : Time,
+  'items' : Array<ChecklistItem>,
+  'driverName' : string,
+}
 export type Time = bigint;
 export interface UploadReference {
   'id' : string,
@@ -73,6 +100,7 @@ export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'answerQuestion' : ActorMethod<[Principal, string, string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'clearCheckpointHistory' : ActorMethod<[], undefined>,
   'createLogEntry' : ActorMethod<
     [[] | [string], string, [] | [bigint]],
     string
@@ -80,18 +108,30 @@ export interface _SERVICE {
   'deleteLogEntry' : ActorMethod<[string], undefined>,
   'getAllLogEntries' : ActorMethod<[], Array<[Principal, Array<LogEntry>]>>,
   'getAllQuestions' : ActorMethod<[], Array<[Principal, Array<Question>]>>,
+  'getAllSavedChecklists' : ActorMethod<
+    [],
+    Array<[Principal, Array<SavedChecklist>]>
+  >,
   'getAllUploads' : ActorMethod<[], Array<[Principal, Array<UploadReference>]>>,
   'getCallerLogEntries' : ActorMethod<[], Array<LogEntry>>,
   'getCallerQuestions' : ActorMethod<[], Array<Question>>,
   'getCallerUploads' : ActorMethod<[], Array<UploadReference>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getChecklistConfig' : ActorMethod<[], ChecklistConfig>,
+  'getCompletedChecklists' : ActorMethod<[], Array<SavedChecklist>>,
   'getUserLogEntry' : ActorMethod<[Principal, string], LogEntry>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getUserQuestion' : ActorMethod<[Principal, string], Question>,
   'getUserUpload' : ActorMethod<[Principal, string], UploadReference>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'registerUser' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
+  'saveChecklist' : ActorMethod<
+    [string, string, Array<[string, boolean]>],
+    undefined
+  >,
+  'saveChecklistFull' : ActorMethod<[PreTripChecklist], undefined>,
   'submitQuestion' : ActorMethod<[string], string>,
   'updateLogEntry' : ActorMethod<
     [string, [] | [string], string, [] | [bigint]],
@@ -101,6 +141,7 @@ export interface _SERVICE {
     [Principal, string, QuestionStatus],
     undefined
   >,
+  'updateUserProfile' : ActorMethod<[string], undefined>,
   'uploadDocument' : ActorMethod<
     [ExternalBlob, string, string, bigint],
     string

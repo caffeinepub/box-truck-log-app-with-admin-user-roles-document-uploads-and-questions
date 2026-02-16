@@ -98,7 +98,37 @@ export interface UploadReference {
     size: bigint;
     timestamp: Time;
 }
+export interface Category {
+    id: string;
+    name: string;
+}
 export type Time = bigint;
+export interface PreTripChecklist {
+    driverId: Principal;
+    checked: Array<[string, boolean]>;
+    signature: string;
+    timestamp: Time;
+    driverName: string;
+}
+export interface _CaffeineStorageRefillInformation {
+    proposed_top_up_amount?: bigint;
+}
+export interface _CaffeineStorageCreateCertificateResult {
+    method: string;
+    blob_hash: string;
+}
+export interface ChecklistConfig {
+    categories: Array<Category>;
+    items: Array<ChecklistItem>;
+}
+export interface SavedChecklist {
+    driverId: Principal;
+    checked: Array<[string, boolean]>;
+    signature: string;
+    timestamp: Time;
+    items: Array<ChecklistItem>;
+    driverName: string;
+}
 export interface LogEntry {
     id: string;
     title?: string;
@@ -107,12 +137,12 @@ export interface LogEntry {
     notes: string;
     timestamp: Time;
 }
-export interface _CaffeineStorageRefillInformation {
-    proposed_top_up_amount?: bigint;
-}
-export interface _CaffeineStorageCreateCertificateResult {
-    method: string;
-    blob_hash: string;
+export interface ChecklistItem {
+    id: string;
+    categoryId: string;
+    defaultChecked: boolean;
+    name: string;
+    prompt: string;
 }
 export interface Question {
     id: string;
@@ -148,25 +178,33 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     answerQuestion(user: Principal, questionId: string, reply: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    clearCheckpointHistory(): Promise<void>;
     createLogEntry(title: string | null, notes: string, mileage: bigint | null): Promise<string>;
     deleteLogEntry(logId: string): Promise<void>;
     getAllLogEntries(): Promise<Array<[Principal, Array<LogEntry>]>>;
     getAllQuestions(): Promise<Array<[Principal, Array<Question>]>>;
+    getAllSavedChecklists(): Promise<Array<[Principal, Array<SavedChecklist>]>>;
     getAllUploads(): Promise<Array<[Principal, Array<UploadReference>]>>;
     getCallerLogEntries(): Promise<Array<LogEntry>>;
     getCallerQuestions(): Promise<Array<Question>>;
     getCallerUploads(): Promise<Array<UploadReference>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChecklistConfig(): Promise<ChecklistConfig>;
+    getCompletedChecklists(): Promise<Array<SavedChecklist>>;
     getUserLogEntry(user: Principal, logId: string): Promise<LogEntry>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUserQuestion(user: Principal, questionId: string): Promise<Question>;
     getUserUpload(user: Principal, uploadId: string): Promise<UploadReference>;
     isCallerAdmin(): Promise<boolean>;
+    registerUser(displayName: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveChecklist(driverName: string, signature: string, checked: Array<[string, boolean]>): Promise<void>;
+    saveChecklistFull(checklist: PreTripChecklist): Promise<void>;
     submitQuestion(questionText: string): Promise<string>;
     updateLogEntry(logId: string, title: string | null, notes: string, mileage: bigint | null): Promise<void>;
     updateQuestionStatus(user: Principal, questionId: string, status: QuestionStatus): Promise<void>;
+    updateUserProfile(displayName: string): Promise<void>;
     uploadDocument(blob: ExternalBlob, name: string, contentType: string, size: bigint): Promise<string>;
 }
 import type { ExternalBlob as _ExternalBlob, LogEntry as _LogEntry, Question as _Question, QuestionStatus as _QuestionStatus, Time as _Time, UploadReference as _UploadReference, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
@@ -298,6 +336,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async clearCheckpointHistory(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.clearCheckpointHistory();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.clearCheckpointHistory();
+            return result;
+        }
+    }
     async createLogEntry(arg0: string | null, arg1: string, arg2: bigint | null): Promise<string> {
         if (this.processError) {
             try {
@@ -352,6 +404,20 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getAllQuestions();
             return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
+        }
+    }
+    async getAllSavedChecklists(): Promise<Array<[Principal, Array<SavedChecklist>]>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllSavedChecklists();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllSavedChecklists();
+            return result;
         }
     }
     async getAllUploads(): Promise<Array<[Principal, Array<UploadReference>]>> {
@@ -438,6 +504,34 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n33(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getChecklistConfig(): Promise<ChecklistConfig> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getChecklistConfig();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getChecklistConfig();
+            return result;
+        }
+    }
+    async getCompletedChecklists(): Promise<Array<SavedChecklist>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCompletedChecklists();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCompletedChecklists();
+            return result;
+        }
+    }
     async getUserLogEntry(arg0: Principal, arg1: string): Promise<LogEntry> {
         if (this.processError) {
             try {
@@ -508,6 +602,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async registerUser(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.registerUser(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.registerUser(arg0);
+            return result;
+        }
+    }
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
@@ -519,6 +627,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.saveCallerUserProfile(arg0);
+            return result;
+        }
+    }
+    async saveChecklist(arg0: string, arg1: string, arg2: Array<[string, boolean]>): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveChecklist(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveChecklist(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async saveChecklistFull(arg0: PreTripChecklist): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveChecklistFull(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveChecklistFull(arg0);
             return result;
         }
     }
@@ -561,6 +697,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateQuestionStatus(arg0, arg1, to_candid_QuestionStatus_n35(this._uploadFile, this._downloadFile, arg2));
+            return result;
+        }
+    }
+    async updateUserProfile(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateUserProfile(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateUserProfile(arg0);
             return result;
         }
     }

@@ -1,245 +1,34 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-14T00:08:58.271Z",
+  "generatedAt": "2026-02-16T10:27:23.036Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 7,
-    "implemented": 7,
+    "total": 1,
+    "implemented": 1,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Implement Internet Identity authentication and role-based access so the app supports two roles: Admin and User. Users can access their own log entries, uploads, and questions; Admins can access all users’ logs, uploaded documents, and questions.",
+        "summary": "Fix the login/sign-in form glitch where the name input clears itself and blinks while typing by ensuring the TanStack Router instance is not recreated on every render in `frontend/src/App.tsx` (keep the router stable across renders while still receiving updated auth context).",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/routes.tsx",
-          "frontend/src/components/auth/RequireAuth.tsx",
-          "frontend/src/components/auth/RequireAdmin.tsx",
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/header/AppHeader.tsx",
-          "frontend/src/hooks/useCurrentUser.ts",
-          "frontend/src/main.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/auth/ProfileSetupModal.tsx",
-          "frontend/src/components/header/AppHeader.tsx",
-          "frontend/src/main.tsx"
-        ]
-      },
-      {
-        "id": "REQ-2",
-        "summary": "Create a truck log feature for a 28ft box truck where signed-in users can create, view, edit, and delete their own log entries with at minimum: date/time, optional title, notes, and an optional numeric field (e.g., mileage/odometer). Admins can view all users’ log entries.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useLogs.ts",
-          "frontend/src/pages/user/MyLogsPage.tsx",
-          "frontend/src/pages/admin/AllLogsPage.tsx",
-          "frontend/src/components/logs/LogEntryForm.tsx",
-          "frontend/src/components/logs/LogList.tsx",
-          "frontend/src/routes.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/user/MyLogsPage.tsx",
-          "frontend/src/pages/admin/AllLogsPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Add document upload for users: users can upload documents (store file bytes + metadata such as filename, content type, size, upload timestamp) and view/download their own uploads. Admins can view/download all users’ uploaded documents.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useDocuments.ts",
-          "frontend/src/pages/user/MyDocumentsPage.tsx",
-          "frontend/src/pages/admin/AllDocumentsPage.tsx",
-          "frontend/src/components/documents/UploadDropzone.tsx",
-          "frontend/src/components/documents/DocumentsList.tsx",
-          "frontend/src/routes.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/user/MyDocumentsPage.tsx",
-          "frontend/src/pages/admin/AllDocumentsPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add a questions feature: users can submit questions (text + timestamp) and view their own submitted questions. Admins can view questions from all users and manage them by setting a simple status (e.g., Open/Answered) and optionally adding an admin reply.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useQuestions.ts",
-          "frontend/src/pages/user/MyQuestionsPage.tsx",
-          "frontend/src/pages/admin/AllQuestionsPage.tsx",
-          "frontend/src/components/questions/QuestionComposer.tsx",
-          "frontend/src/components/questions/QuestionsList.tsx",
-          "frontend/src/routes.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/user/MyQuestionsPage.tsx",
-          "frontend/src/pages/admin/AllQuestionsPage.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Provide an Admin dashboard (“admin log”) and a User dashboard (“users log”) with navigation between: Truck Logs, Documents, and Questions. The Admin dashboard must include overviews and lists for all users’ data; the User dashboard must show only the signed-in user’s data.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/user/UserDashboardLayout.tsx",
-          "frontend/src/pages/admin/AdminDashboardLayout.tsx",
-          "frontend/src/components/nav/RoleNav.tsx",
-          "frontend/src/routes.tsx",
           "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/user/UserDashboardLayout.tsx",
-          "frontend/src/pages/admin/AdminDashboardLayout.tsx",
           "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Define a consistent, distinctive visual theme for the app (colors, typography, spacing, and component styling) appropriate for a “fleet/truck operations log” product, and apply it consistently across dashboards, tables/lists, and forms (avoid a blue/purple theme).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/index.css",
-          "frontend/tailwind.config.js",
-          "frontend/src/components/layout/PageShell.tsx",
-          "frontend/src/components/layout/SectionHeader.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/index.css",
-          "frontend/tailwind.config.js"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Add the required generated image asset(s) to the frontend as static files under frontend/public/assets/generated and use them in the UI (e.g., app header/login screen).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/public/assets/generated/truck-logo.dim_512x512.png",
-          "frontend/src/components/header/AppHeader.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/public/assets/generated/truck-logo.dim_512x512.png",
-          "frontend/src/components/header/AppHeader.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/authorization/MixinAuthorization.mo",
-    "backend/authorization/access-control.mo",
-    "backend/blob-storage/Mixin.mo",
-    "backend/blob-storage/Storage.mo",
-    "backend/main.mo",
     "build-request.json",
-    "build-template/Dockerfile",
-    "build-template/LICENSE",
-    "build-template/README.md",
-    "build-template/deploy.sh",
-    "build-template/icp.yaml",
-    "build-template/package.json",
-    "build-template/pnpm-lock.yaml",
-    "build-template/pnpm-workspace.yaml",
-    "build-template/scripts/prune-unused-images.js",
-    "build-template/scripts/resize-images.js",
-    "build-template/src/backend/canister.yaml",
-    "build-template/src/backend/system-idl/aaaaa-aa.did",
-    "build-template/src/frontend/canister.yaml",
-    "build-template/src/frontend/components.json",
-    "build-template/src/frontend/env.json",
-    "build-template/src/frontend/eslint-rules/no-bigint-in-query-keys.js",
-    "build-template/src/frontend/eslint-rules/require-internet-identity-provider.js",
-    "build-template/src/frontend/eslint.config.js",
-    "build-template/src/frontend/package.json",
-    "build-template/src/frontend/postcss.config.js",
-    "build-template/src/frontend/src/components/ui/accordion.tsx",
-    "build-template/src/frontend/src/components/ui/alert-dialog.tsx",
-    "build-template/src/frontend/src/components/ui/alert.tsx",
-    "build-template/src/frontend/src/components/ui/aspect-ratio.tsx",
-    "build-template/src/frontend/src/components/ui/avatar.tsx",
-    "build-template/src/frontend/src/components/ui/badge.tsx",
-    "build-template/src/frontend/src/components/ui/breadcrumb.tsx",
-    "build-template/src/frontend/src/components/ui/button.tsx",
-    "build-template/src/frontend/src/components/ui/calendar.tsx",
-    "build-template/src/frontend/src/components/ui/card.tsx",
-    "build-template/src/frontend/src/components/ui/carousel.tsx",
-    "build-template/src/frontend/src/components/ui/chart.tsx",
-    "build-template/src/frontend/src/components/ui/checkbox.tsx",
-    "build-template/src/frontend/src/components/ui/collapsible.tsx",
-    "build-template/src/frontend/src/components/ui/command.tsx",
-    "build-template/src/frontend/src/components/ui/context-menu.tsx",
-    "build-template/src/frontend/src/components/ui/dialog.tsx",
-    "build-template/src/frontend/src/components/ui/drawer.tsx",
-    "build-template/src/frontend/src/components/ui/dropdown-menu.tsx",
-    "build-template/src/frontend/src/components/ui/form.tsx",
-    "build-template/src/frontend/src/components/ui/hover-card.tsx",
-    "build-template/src/frontend/src/components/ui/input-otp.tsx",
-    "build-template/src/frontend/src/components/ui/input.tsx",
-    "build-template/src/frontend/src/components/ui/label.tsx",
-    "build-template/src/frontend/src/components/ui/menubar.tsx",
-    "build-template/src/frontend/src/components/ui/navigation-menu.tsx",
-    "build-template/src/frontend/src/components/ui/pagination.tsx",
-    "build-template/src/frontend/src/components/ui/popover.tsx",
-    "build-template/src/frontend/src/components/ui/progress.tsx",
-    "build-template/src/frontend/src/components/ui/radio-group.tsx",
-    "build-template/src/frontend/src/components/ui/resizable.tsx",
-    "build-template/src/frontend/src/components/ui/scroll-area.tsx",
-    "build-template/src/frontend/src/components/ui/select.tsx",
-    "build-template/src/frontend/src/components/ui/separator.tsx",
-    "build-template/src/frontend/src/components/ui/sheet.tsx",
-    "build-template/src/frontend/src/components/ui/sidebar.tsx",
-    "build-template/src/frontend/src/components/ui/skeleton.tsx",
-    "build-template/src/frontend/src/components/ui/slider.tsx",
-    "build-template/src/frontend/src/components/ui/sonner.tsx",
-    "build-template/src/frontend/src/components/ui/switch.tsx",
-    "build-template/src/frontend/src/components/ui/table.tsx",
-    "build-template/src/frontend/src/components/ui/tabs.tsx",
-    "build-template/src/frontend/src/components/ui/textarea.tsx",
-    "build-template/src/frontend/src/components/ui/toggle-group.tsx",
-    "build-template/src/frontend/src/components/ui/toggle.tsx",
-    "build-template/src/frontend/src/components/ui/tooltip.tsx",
-    "build-template/src/frontend/src/hooks/use-mobile.tsx",
-    "build-template/src/frontend/src/lib/utils.ts",
-    "build-template/src/frontend/tsconfig.json",
-    "build-template/src/frontend/vite.config.js",
-    "build-template/tsconfig.json",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.css",
-    "frontend/index.html",
-    "frontend/public/assets/generated/truck-logo.dim_512x512.png",
     "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/auth/ProfileSetupModal.tsx",
-    "frontend/src/components/header/AppHeader.tsx",
-    "frontend/src/config.ts",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useActor.ts",
-    "frontend/src/hooks/useInternetIdentity.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/index.css",
-    "frontend/src/main.tsx",
-    "frontend/src/pages/LoginPage.tsx",
-    "frontend/src/pages/admin/AdminDashboardLayout.tsx",
-    "frontend/src/pages/admin/AllDocumentsPage.tsx",
-    "frontend/src/pages/admin/AllLogsPage.tsx",
-    "frontend/src/pages/admin/AllQuestionsPage.tsx",
-    "frontend/src/pages/user/MyDocumentsPage.tsx",
-    "frontend/src/pages/user/MyLogsPage.tsx",
-    "frontend/src/pages/user/MyQuestionsPage.tsx",
-    "frontend/src/pages/user/UserDashboardLayout.tsx",
-    "frontend/src/ui-summary.json",
-    "frontend/src/utils/StorageClient.ts",
-    "frontend/src/utils/urlParams.ts",
-    "frontend/tailwind.config.js",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

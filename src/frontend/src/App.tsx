@@ -1,18 +1,20 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, redirect } from '@tanstack/react-router';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { RouterProvider, createRouter, createRoute, createRootRoute, redirect, Outlet } from '@tanstack/react-router';
+import { LocalAuthProvider, useLocalAuth } from './hooks/useLocalAuth';
 import { useGetCallerUserProfile, useIsCallerAdmin } from './hooks/useQueries';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
-import ProfileSetupModal from './components/auth/ProfileSetupModal';
+import { useRef, useEffect } from 'react';
 import AppHeader from './components/header/AppHeader';
 import UserDashboardLayout from './pages/user/UserDashboardLayout';
 import AdminDashboardLayout from './pages/admin/AdminDashboardLayout';
 import MyLogsPage from './pages/user/MyLogsPage';
 import MyDocumentsPage from './pages/user/MyDocumentsPage';
 import MyQuestionsPage from './pages/user/MyQuestionsPage';
+import MyChecklistsPage from './pages/user/MyChecklistsPage';
 import AllLogsPage from './pages/admin/AllLogsPage';
 import AllDocumentsPage from './pages/admin/AllDocumentsPage';
 import AllQuestionsPage from './pages/admin/AllQuestionsPage';
+import AllChecklistsPage from './pages/admin/AllChecklistsPage';
 import LoginPage from './pages/LoginPage';
 
 const rootRoute = createRootRoute({
@@ -24,7 +26,7 @@ function RootLayout() {
     <div className="min-h-screen flex flex-col">
       <AppHeader />
       <main className="flex-1">
-        {/* Router outlet will render here */}
+        <Outlet />
       </main>
     </div>
   );
@@ -65,6 +67,12 @@ const userQuestionsRoute = createRoute({
   component: MyQuestionsPage,
 });
 
+const userChecklistsRoute = createRoute({
+  getParentRoute: () => userRoute,
+  path: '/checklists',
+  component: MyChecklistsPage,
+});
+
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
@@ -94,48 +102,74 @@ const adminQuestionsRoute = createRoute({
   component: AllQuestionsPage,
 });
 
+const adminChecklistsRoute = createRoute({
+  getParentRoute: () => adminRoute,
+  path: '/checklists',
+  component: AllChecklistsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  userRoute.addChildren([userLogsRoute, userDocumentsRoute, userQuestionsRoute]),
-  adminRoute.addChildren([adminLogsRoute, adminDocumentsRoute, adminQuestionsRoute]),
+  userRoute.addChildren([userLogsRoute, userDocumentsRoute, userQuestionsRoute, userChecklistsRoute]),
+  adminRoute.addChildren([adminLogsRoute, adminDocumentsRoute, adminQuestionsRoute, adminChecklistsRoute]),
 ]);
 
-function App() {
-  const { identity, isInitializing } = useInternetIdentity();
-  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+function AppContent() {
+  const { isAuthenticated, isInitializing } = useLocalAuth();
+  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
   const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
 
-  const isAuthenticated = !!identity;
+  // Create router once and store in ref
+  const routerRef = useRef<ReturnType<typeof createRouter> | null>(null);
 
-  const router = createRouter({
-    routeTree,
-    context: {
-      isAuthenticated,
-      isAdmin: isAdmin || false,
-    },
-    defaultPreload: 'intent',
-  });
+  if (!routerRef.current) {
+    routerRef.current = createRouter({
+      routeTree,
+      context: {
+        isAuthenticated: false,
+        isAdmin: false,
+      },
+      defaultPreload: 'intent',
+    });
+  }
 
-  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  // Update router context when auth state changes without recreating the router
+  useEffect(() => {
+    if (routerRef.current) {
+      routerRef.current.update({
+        context: {
+          isAuthenticated,
+          isAdmin: isAdmin || false,
+        },
+      });
+    }
+  }, [isAuthenticated, isAdmin]);
 
   if (isInitializing || (isAuthenticated && (profileLoading || adminLoading))) {
     return (
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <div className="min-h-screen flex items-center justify-center bg-background">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
         </div>
-      </ThemeProvider>
+      </div>
     );
   }
 
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <RouterProvider router={router} />
+    <>
+      <RouterProvider router={routerRef.current} />
       <Toaster />
-      {showProfileSetup && <ProfileSetupModal />}
+    </>
+  );
+}
+
+function App() {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <LocalAuthProvider>
+        <AppContent />
+      </LocalAuthProvider>
     </ThemeProvider>
   );
 }

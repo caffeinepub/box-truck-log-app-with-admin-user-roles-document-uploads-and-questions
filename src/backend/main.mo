@@ -2,16 +2,22 @@ import Array "mo:core/Array";
 import Text "mo:core/Text";
 import Int "mo:core/Int";
 import Map "mo:core/Map";
-import Time "mo:core/Time";
+import Bool "mo:core/Bool";
 import List "mo:core/List";
+import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
 import Runtime "mo:core/Runtime";
+
 import Principal "mo:core/Principal";
+
 import Storage "blob-storage/Storage";
 import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+
+// USE THE NEW EXTENDED TYPE
+
 
 actor {
   // Setup Access Control and Storage
@@ -65,6 +71,49 @@ actor {
     #answered;
   };
 
+  // Pre-Trip Checklist types and storage
+  public type Category = {
+    id : Text;
+    name : Text;
+  };
+
+  public type ChecklistItem = {
+    id : Text;
+    categoryId : Text;
+    name : Text;
+    prompt : Text;
+    defaultChecked : Bool;
+  };
+
+  public type SavedChecklist = {
+    items : [ChecklistItem];
+    checked : [(Text, Bool)];
+    signature : Text;
+    timestamp : Time.Time;
+    driverName : Text;
+    driverId : Principal;
+  };
+
+  let savedChecklists = Map.empty<Principal, List.List<SavedChecklist>>();
+
+  public type PreTripChecklist = {
+    signature : Text;
+    timestamp : Time.Time;
+    driverName : Text;
+    driverId : Principal;
+    checked : [(Text, Bool)];
+  };
+
+  public type ChecklistConfig = {
+    categories : [Category];
+    items : [ChecklistItem];
+  };
+
+  public type Checklist = {
+    config : ChecklistConfig;
+    checklist : PreTripChecklist;
+  };
+
   module LogEntry {
     public func compareByTime(log1 : LogEntry, log2 : LogEntry) : Order.Order {
       Int.compare(log1.timestamp, log2.timestamp);
@@ -86,10 +135,256 @@ actor {
     };
   };
 
-  // User Profile Functions
+  // ================= User Onboarding (Local Authentication Flow) ==================
+
+  // Track registered users separately to enable self-registration
+  let registeredUsers = Map.empty<Principal, Bool>();
+
+  // Register a new user with display name (local authentication onboarding)
+  public shared ({ caller }) func registerUser(displayName : Text) : async () {
+    // Validate display name
+    if (displayName.size() == 0) {
+      Runtime.trap("Display name cannot be empty");
+    };
+
+    // Check if already registered
+    switch (registeredUsers.get(caller)) {
+      case (?true) {
+        Runtime.trap("User already registered");
+      };
+      case _ {
+        // Register user
+        registeredUsers.add(caller, true);
+
+        // Create user profile
+        let profile : UserProfile = {
+          name = displayName;
+        };
+        userProfiles.add(caller, profile);
+
+        // Note: We cannot call AccessControl.assignRole here as it's admin-only
+        // The AccessControl module will need to be queried via getUserRole
+        // which returns #guest for unregistered users
+      };
+    };
+  };
+
+  // Update user profile (for already registered users or during registration)
+  public shared ({ caller }) func updateUserProfile(displayName : Text) : async () {
+    // Validate display name
+    if (displayName.size() == 0) {
+      Runtime.trap("Display name cannot be empty");
+    };
+
+    // Check if user is registered
+    switch (registeredUsers.get(caller)) {
+      case (?true) {
+        // Update existing profile
+        let profile : UserProfile = {
+          name = displayName;
+        };
+        userProfiles.add(caller, profile);
+      };
+      case _ {
+        Runtime.trap("User not registered. Please register first.");
+      };
+    };
+  };
+
+  // Check if caller is a registered user (helper for authorization)
+  func isRegisteredUser(principal : Principal) : Bool {
+    switch (registeredUsers.get(principal)) {
+      case (?true) { true };
+      case _ { false };
+    };
+  };
+
+  // ================= Checklist Feature Extension ==================
+  public query ({ caller }) func getChecklistConfig() : async ChecklistConfig {
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can access checklist items");
+    };
+    {
+      categories = getChecklistCategories();
+      items = getChecklistItems();
+    };
+  };
+
+  func getChecklistCategories() : [Category] {
+    [
+      { id = "0"; name = "Under the Hood" },
+      { id = "1"; name = "Outside the Truck" },
+      { id = "2"; name = "Cabin" },
+      { id = "3"; name = "Physical Appearance" },
+    ];
+  };
+
+  func getChecklistItems() : [ChecklistItem] {
+    [
+      {
+        id = "coolant";
+        categoryId = "0";
+        name = "Check Coolant";
+        prompt = "Check the coolant level in the engine at least weekly using the gauge on the side of the tank. If below full, open the gasket and check underneath. Ask management for help if more fluids are needed.";
+        defaultChecked = false;
+      },
+      {
+        id = "washers";
+        categoryId = "0";
+        name = "Check Windshield Washers";
+        prompt = "Check the washers underneath the hood. Tell management if they are not properly working.";
+        defaultChecked = false;
+      },
+      { id = "levels"; categoryId = "0"; name = "Check Fluid Levels"; prompt = "Check all fluid levels before driving. Each liquid box is labeled accordingly."; defaultChecked = false },
+      {
+        id = "battery";
+        categoryId = "0";
+        name = "Check Battery";
+        prompt = "Check the battery and ensure there are no leaks. Wipe terminals if they appear heavily corroded, checking for unusual buildup.";
+        defaultChecked = false;
+      },
+      {
+        id = "lights";
+        categoryId = "1";
+        name = "Check All Lights";
+        prompt = "Check if all outside driving, rear, and brake lights are functional. When pressed, verify headlights turn on and blinkers work. Use reverse and check rear backup lights. Alert management if lights are not functioning properly.";
+        defaultChecked = false;
+      },
+      {
+        id = "tire_pressure";
+        categoryId = "1";
+        name = "Check Tire Pressure";
+        prompt = "Check tire pressure manually at least weekly. Optimal pressure range: 65-80 psi. If below or 10 psi above, contact management for correction.";
+        defaultChecked = false;
+      },
+      {
+        id = "cab_lights";
+        categoryId = "1";
+        name = "Check Cab Lights";
+        prompt = "Turn on all headlights, cabin lights, and ensure they are functional. Alert management regarding any malfunctions.";
+        defaultChecked = false;
+      },
+      {
+        id = "mirrors";
+        categoryId = "2";
+        name = "Check Mirrors";
+        prompt = "Check all three mirrors for optimal visibility. Position mirrors to eliminate road blind spots before driving. All should be clean and adjusted for optimal safety.";
+        defaultChecked = false;
+      },
+      {
+        id = "celcius";
+        categoryId = "2";
+        name = "Set Celsius Mode";
+        prompt = "Ensure the climate control system is set to Celsius mode, not Fahrenheit.";
+        defaultChecked = false;
+      },
+      {
+        id = "doors";
+        categoryId = "3";
+        name = "Check Cab Doors";
+        prompt = "Check all locks and doors for proper operation. Check both driver and passenger side for secure locking.";
+        defaultChecked = false;
+      },
+      {
+        id = "badges";
+        categoryId = "3";
+        name = "Check Company Badges";
+        prompt = "Verify that all company badges are properly installed and visible at all times.";
+        defaultChecked = false;
+      },
+      {
+        id = "registration";
+        categoryId = "3";
+        name = "Check Registration";
+        prompt = "Check proof of insurance is present in the dash compartment. Inform management if missing.";
+        defaultChecked = false;
+      },
+    ];
+  };
+
+  public shared ({ caller }) func saveChecklist(driverName : Text, signature : Text, checked : [(Text, Bool)]) : async () {
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can submit checklists");
+    };
+    let checklist : SavedChecklist = {
+      items = getChecklistItems();
+      signature;
+      timestamp = Time.now();
+      driverName;
+      driverId = caller;
+      checked;
+    };
+    let checklists = switch (savedChecklists.get(caller)) {
+      case (null) { List.empty<SavedChecklist>() };
+      case (?existing) { existing };
+    };
+    checklists.add(checklist);
+    savedChecklists.add(caller, checklists);
+  };
+
+  public shared ({ caller }) func saveChecklistFull(checklist : PreTripChecklist) : async () {
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can submit checklists");
+    };
+
+    // Security: Enforce that the caller can only save checklists for themselves
+    if (checklist.driverId != caller) {
+      Runtime.trap("Unauthorized: Can only save checklists for yourself");
+    };
+
+    let savedChecklist : SavedChecklist = {
+      items = getChecklistItems();
+      driverId = caller;
+      signature = checklist.signature;
+      timestamp = checklist.timestamp;
+      driverName = checklist.driverName;
+      checked = checklist.checked;
+    };
+
+    let checklists = switch (savedChecklists.get(caller)) {
+      case (null) { List.empty<SavedChecklist>() };
+      case (?existing) { existing };
+    };
+
+    checklists.add(savedChecklist);
+    savedChecklists.add(caller, checklists);
+  };
+
+  public query ({ caller }) func getCompletedChecklists() : async [SavedChecklist] {
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can view completed checklists");
+    };
+
+    switch (savedChecklists.get(caller)) {
+      case (null) { [] };
+      case (?checklists) { checklists.toArray() };
+    };
+  };
+
+  public query ({ caller }) func getAllSavedChecklists() : async [(Principal, [SavedChecklist])] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all saved checklists");
+    };
+
+    let entries = Map.empty<Principal, [SavedChecklist]>();
+    for ((principal, checklists) in savedChecklists.entries()) {
+      entries.add(principal, checklists.toArray());
+    };
+    entries.toArray();
+  };
+
+  public shared ({ caller }) func clearCheckpointHistory() : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can clear checkpoint history");
+    };
+    savedChecklists.clear();
+  };
+
+  // ================= User Profile Functions ================
+
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can access profiles");
     };
     userProfiles.get(caller);
   };
@@ -102,16 +397,17 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  // Truck Logging Functions
+  // ================= Truck Logging Functions ================
+
   public shared ({ caller }) func createLogEntry(title : ?Text, notes : Text, mileage : ?Int) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can create logs");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can create logs");
     };
     let logEntry : LogEntry = {
       id = Time.now().toText();
@@ -131,8 +427,8 @@ actor {
   };
 
   public shared ({ caller }) func updateLogEntry(logId : Text, title : ?Text, notes : Text, mileage : ?Int) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can update logs");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can update logs");
     };
     switch (logs.get(caller)) {
       case (null) { Runtime.trap("No logs found") };
@@ -167,8 +463,8 @@ actor {
   };
 
   public shared ({ caller }) func deleteLogEntry(logId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can delete logs");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can delete logs");
     };
     switch (logs.get(caller)) {
       case (null) { Runtime.trap("No logs found") };
@@ -186,8 +482,8 @@ actor {
   };
 
   public query ({ caller }) func getCallerLogEntries() : async [LogEntry] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view logs");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can view logs");
     };
     switch (logs.get(caller)) {
       case (null) { [] };
@@ -222,10 +518,11 @@ actor {
     entries.toArray();
   };
 
-  // Document Upload Functions
+  // ================= Document Upload Functions ================
+
   public shared ({ caller }) func uploadDocument(blob : Storage.ExternalBlob, name : Text, contentType : Text, size : Nat) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can upload documents");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can upload documents");
     };
     let reference : UploadReference = {
       id = Time.now().toText();
@@ -246,8 +543,8 @@ actor {
   };
 
   public query ({ caller }) func getCallerUploads() : async [UploadReference] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view uploads");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can view uploads");
     };
     switch (uploads.get(caller)) {
       case (null) { [] };
@@ -282,10 +579,11 @@ actor {
     entries.toArray();
   };
 
-  // Question Functions
+  // ================= Question Functions ================
+
   public shared ({ caller }) func submitQuestion(questionText : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can submit questions");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can submit questions");
     };
     let question : Question = {
       id = Time.now().toText();
@@ -367,8 +665,8 @@ actor {
   };
 
   public query ({ caller }) func getCallerQuestions() : async [Question] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view questions");
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can view questions");
     };
     switch (questions.get(caller)) {
       case (null) { [] };
@@ -403,3 +701,4 @@ actor {
     entries.toArray();
   };
 };
+

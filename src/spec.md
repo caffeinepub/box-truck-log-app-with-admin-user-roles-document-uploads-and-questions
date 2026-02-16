@@ -1,15 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Build a web-based 28ft box truck log app with Internet Identity sign-in, Admin/User roles, truck log entries, document uploads, and a questions workflow.
+**Goal:** Stop the login/sign-in “Your Name” input from clearing, losing focus, or flickering while typing by preventing TanStack Router from being recreated on every render.
 
 **Planned changes:**
-- Add Internet Identity authentication and role-based access control (Admin vs User) with backend-enforced authorization.
-- Implement truck log CRUD for users (date/time, optional title, notes, optional numeric field) and an admin view for all users’ logs with filtering/grouping by user.
-- Implement document upload/storage (bytes + metadata) with user-only access to own files and admin access to all users’ files; include download/view and clear upload error handling.
-- Implement questions submission for users and admin management (status Open/Answered and optional admin reply) with proper access restrictions.
-- Create separate Admin and User dashboards with navigation across Logs, Documents, and Questions; restrict/guard admin routes for non-admins.
-- Apply a consistent “fleet/truck operations log” visual theme (not blue/purple-dominant) across layouts, forms, and lists/tables with responsive design.
-- Add and display the required generated image asset from `frontend/public/assets/generated` in a primary UI surface (e.g., header/login/dashboard).
+- Update `frontend/src/App.tsx` to keep a single, stable TanStack Router instance across renders while still receiving updated auth context.
+- Ensure the login route component is not remounted on each keystroke so its local state (e.g., `displayName`) remains intact.
+- Verify existing route-guards/redirect behavior remains unchanged for `/user/*` and `/admin/*`.
 
-**User-visible outcome:** Users can sign in, manage their own truck logs, upload and download their documents, and submit questions; admins can sign in to view all users’ logs/documents/questions and manage question status/replies from an admin dashboard.
+**User-visible outcome:** On `/`, users can type their name into the sign-in input without it blinking, clearing, or losing focus, and navigation/redirects continue to work as before.

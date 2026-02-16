@@ -1,11 +1,11 @@
 {
-  "frontend/src/App.tsx": "Main application component with TanStack Router setup, authentication flow, role-based routing (admin/user), profile setup modal, and theme provider integration.",
-  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations including user profiles, authorization checks, log entries, document uploads, and questions with proper cache invalidation and error handling.",
-  "frontend/src/components/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user profile setup that prompts authenticated users to enter their display name.",
-  "frontend/src/components/header/AppHeader.tsx": "Application header with truck logo, app branding, user profile display, role badge, and login/logout functionality.",
-  "frontend/src/pages/LoginPage.tsx": "Landing page with feature overview cards, Internet Identity login button, and automatic redirect to role-appropriate dashboard after authentication.",
-  "frontend/src/pages/user/UserDashboardLayout.tsx": "User dashboard layout with navigation tabs for My Logs, My Documents, and My Questions sections.",
-  "frontend/src/pages/admin/AdminDashboardLayout.tsx": "Admin dashboard layout with overview statistics cards and navigation tabs for All Logs, All Documents, and All Questions sections.",
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup using a stable router instance stored in useRef that updates context without remounting routes, preventing input field glitches during typing.",
+  "frontend/src/hooks/useQueries.ts": "React Query hooks for all backend operations using useLocalActor instead of useActor, including user registration, profiles, logs, documents, questions, and checklists with proper cache invalidation.",
+  "frontend/src/components/auth/ProfileSetupModal.tsx": "Modal dialog for first-time user registration that appears after Internet Identity authentication, prompting users to enter their display name to complete account setup.",
+  "frontend/src/components/header/AppHeader.tsx": "Application header with Berks Bus Service branding, user profile display, and sign in/sign out functionality using local authentication context instead of Internet Identity.",
+  "frontend/src/pages/LoginPage.tsx": "Landing page with name-based registration form that creates local identity and registers with backend, removing all Internet Identity references and providing direct access to fleet management features.",
+  "frontend/src/pages/user/UserDashboardLayout.tsx": "User dashboard layout with navigation tabs for My Logs, My Documents, My Questions, and the new My Checklists section.",
+  "frontend/src/pages/admin/AdminDashboardLayout.tsx": "Admin dashboard layout with overview statistics cards including checklist count and navigation tabs for all sections including All Checklists.",
   "frontend/src/pages/user/MyLogsPage.tsx": "User page for creating, viewing, editing, and deleting personal truck log entries with title, notes, and mileage fields.",
   "frontend/src/pages/user/MyDocumentsPage.tsx": "User page for uploading documents with progress tracking and viewing/downloading personal uploaded files.",
   "frontend/src/pages/user/MyQuestionsPage.tsx": "User page for submitting questions and viewing submitted questions with admin replies and status badges.",
@@ -13,5 +13,10 @@
   "frontend/src/pages/admin/AllDocumentsPage.tsx": "Admin page displaying all users' uploaded documents with user filtering and download/view capabilities.",
   "frontend/src/pages/admin/AllQuestionsPage.tsx": "Admin page for managing all users' questions with status updates using QuestionStatus enum, reply functionality, and filtering by user and status.",
   "frontend/src/index.css": "Global styles with OKLCH color system featuring charcoal/graphite and safety orange theme for both light and dark modes.",
-  "frontend/tailwind.config.js": "Tailwind configuration with extended color tokens, border radius, shadows, and animations matching the truck-ops theme."
+  "frontend/tailwind.config.js": "Tailwind configuration with extended color tokens, border radius, shadows, and animations matching the truck-ops theme.",
+  "frontend/src/components/checklists/ChecklistDetails.tsx": "Shared read-only component that displays a saved checklist's categorized items with check status badges and driver acknowledgment information.",
+  "frontend/src/pages/user/MyChecklistsPage.tsx": "User page for completing pre-trip checklists with improved checkbox interaction (entire row clickable), per-category Select All buttons, progress tracking, and completed checklist history using local authentication.",
+  "frontend/src/pages/admin/AllChecklistsPage.tsx": "Admin page displaying all users' completed checklists with user filtering, principal display, profile name lookup, and detailed checklist viewing capabilities.",
+  "frontend/src/hooks/useLocalAuth.tsx": "React context provider for local browser-based authentication that generates and persists Ed25519 identities in localStorage along with display names, providing login/logout functionality without Internet Identity.",
+  "frontend/src/hooks/useLocalActor.ts": "Custom hook that creates and manages the backend actor using the local identity from useLocalAuth context, leveraging createActorWithConfig for proper actor initialization with admin token support and query invalidation."
 }

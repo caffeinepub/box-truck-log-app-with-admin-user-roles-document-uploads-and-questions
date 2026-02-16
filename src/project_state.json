@@ -1,96 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Web-based log application for a 28ft box truck with separate admin and user logs; users can upload documents and submit questions, and admins can view/manage uploads and questions.",
+  "summary": "New project",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
-  "imageRequirements": "## Required Images\n- Minimal monochrome line-art illustration of a 28ft box truck, front 3/4 view, clean vector style (truck-logo.dim_512x512.png)",
+  "known_issues": [
+    "Sign-in flow is glitching: user cannot reliably sign in; typing a name in the input box deletes itself and the field blinks."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-implement-internet-identity-authentication-and-role-based-access-so-the-app-supports-two-roles-admin-and-user-users-can-access-their-own-log-entries-uploads-and-questions-admins-can-access-all-users-logs-uploaded-documents-and-questions",
-      "title": "Implement Internet Identity authentication and role-based access so the app supports two roles: Admin and User. Users can access their own log entries, uploads, and questions; Admins can access all users’ logs, uploaded documents, and questions.",
+      "id": "feature-fix-the-login-sign-in-form-glitch-where-the-name-input-clears-itself-and-blinks-while-typing-by-ensuring-the-tanstack-router-instance-is-not-recreated-on-every-render-in-frontend-src-app-tsx-keep-the-router-stable-across-renders-while-still-receiving-updated-auth-context",
+      "title": "Fix the login/sign-in form glitch where the name input clears itself and blinks while typing by ensuring the TanStack Router instance is not recreated on every render in `frontend/src/App.tsx` (keep the router stable across renders while still receiving updated auth context).",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-create-a-truck-log-feature-for-a-28ft-box-truck-where-signed-in-users-can-create-view-edit-and-delete-their-own-log-entries-with-at-minimum-date-time-optional-title-notes-and-an-optional-numeric-field-e-g-mileage-odometer-admins-can-view-all-users-log-entries",
-      "title": "Create a truck log feature for a 28ft box truck where signed-in users can create, view, edit, and delete their own log entries with at minimum: date/time, optional title, notes, and an optional numeric field (e.g., mileage/odometer). Admins can view all users’ log entries.",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-document-upload-for-users-users-can-upload-documents-store-file-bytes-metadata-such-as-filename-content-type-size-upload-timestamp-and-view-download-their-own-uploads-admins-can-view-download-all-users-uploaded-documents",
-      "title": "Add document upload for users: users can upload documents (store file bytes + metadata such as filename, content type, size, upload timestamp) and view/download their own uploads. Admins can view/download all users’ uploaded documents.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-questions-feature-users-can-submit-questions-text-timestamp-and-view-their-own-submitted-questions-admins-can-view-questions-from-all-users-and-manage-them-by-setting-a-simple-status-e-g-open-answered-and-optionally-adding-an-admin-reply",
-      "title": "Add a questions feature: users can submit questions (text + timestamp) and view their own submitted questions. Admins can view questions from all users and manage them by setting a simple status (e.g., Open/Answered) and optionally adding an admin reply.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-provide-an-admin-dashboard-admin-log-and-a-user-dashboard-users-log-with-navigation-between-truck-logs-documents-and-questions-the-admin-dashboard-must-include-overviews-and-lists-for-all-users-data-the-user-dashboard-must-show-only-the-signed-in-user-s-data",
-      "title": "Provide an Admin dashboard (“admin log”) and a User dashboard (“users log”) with navigation between: Truck Logs, Documents, and Questions. The Admin dashboard must include overviews and lists for all users’ data; the User dashboard must show only the signed-in user’s data.",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-define-a-consistent-distinctive-visual-theme-for-the-app-colors-typography-spacing-and-component-styling-appropriate-for-a-fleet-truck-operations-log-product-and-apply-it-consistently-across-dashboards-tables-lists-and-forms-avoid-a-blue-purple-theme",
-      "title": "Define a consistent, distinctive visual theme for the app (colors, typography, spacing, and component styling) appropriate for a “fleet/truck operations log” product, and apply it consistently across dashboards, tables/lists, and forms (avoid a blue/purple theme).",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-the-required-generated-image-asset-s-to-the-frontend-as-static-files-under-frontend-public-assets-generated-and-use-them-in-the-ui-e-g-app-header-login-screen",
-      "title": "Add the required generated image asset(s) to the frontend as static files under frontend/public/assets/generated and use them in the UI (e.g., app header/login screen).",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Create web-based log system for a 28ft box truck",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Implement admin and user roles with separate logs (admin can view user activity/logs)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Allow users to upload documents; admin can view uploaded documents",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Add user questions submission; admin can view/manage questions",
-      "reqIds": [],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Box Truck Log App with Admin/User Roles, Document Uploads, and Questions",
+  "new_feature_requests": [],
+  "projectName": "Fix sign-in name input glitch by preventing TanStack Router recreation",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

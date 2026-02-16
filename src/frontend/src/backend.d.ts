@@ -23,7 +23,30 @@ export interface UploadReference {
     size: bigint;
     timestamp: Time;
 }
+export interface Category {
+    id: string;
+    name: string;
+}
 export type Time = bigint;
+export interface PreTripChecklist {
+    driverId: Principal;
+    checked: Array<[string, boolean]>;
+    signature: string;
+    timestamp: Time;
+    driverName: string;
+}
+export interface ChecklistConfig {
+    categories: Array<Category>;
+    items: Array<ChecklistItem>;
+}
+export interface SavedChecklist {
+    driverId: Principal;
+    checked: Array<[string, boolean]>;
+    signature: string;
+    timestamp: Time;
+    items: Array<ChecklistItem>;
+    driverName: string;
+}
 export interface LogEntry {
     id: string;
     title?: string;
@@ -31,6 +54,13 @@ export interface LogEntry {
     owner: Principal;
     notes: string;
     timestamp: Time;
+}
+export interface ChecklistItem {
+    id: string;
+    categoryId: string;
+    defaultChecked: boolean;
+    name: string;
+    prompt: string;
 }
 export interface Question {
     id: string;
@@ -55,24 +85,32 @@ export enum UserRole {
 export interface backendInterface {
     answerQuestion(user: Principal, questionId: string, reply: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    clearCheckpointHistory(): Promise<void>;
     createLogEntry(title: string | null, notes: string, mileage: bigint | null): Promise<string>;
     deleteLogEntry(logId: string): Promise<void>;
     getAllLogEntries(): Promise<Array<[Principal, Array<LogEntry>]>>;
     getAllQuestions(): Promise<Array<[Principal, Array<Question>]>>;
+    getAllSavedChecklists(): Promise<Array<[Principal, Array<SavedChecklist>]>>;
     getAllUploads(): Promise<Array<[Principal, Array<UploadReference>]>>;
     getCallerLogEntries(): Promise<Array<LogEntry>>;
     getCallerQuestions(): Promise<Array<Question>>;
     getCallerUploads(): Promise<Array<UploadReference>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChecklistConfig(): Promise<ChecklistConfig>;
+    getCompletedChecklists(): Promise<Array<SavedChecklist>>;
     getUserLogEntry(user: Principal, logId: string): Promise<LogEntry>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     getUserQuestion(user: Principal, questionId: string): Promise<Question>;
     getUserUpload(user: Principal, uploadId: string): Promise<UploadReference>;
     isCallerAdmin(): Promise<boolean>;
+    registerUser(displayName: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
+    saveChecklist(driverName: string, signature: string, checked: Array<[string, boolean]>): Promise<void>;
+    saveChecklistFull(checklist: PreTripChecklist): Promise<void>;
     submitQuestion(questionText: string): Promise<string>;
     updateLogEntry(logId: string, title: string | null, notes: string, mileage: bigint | null): Promise<void>;
     updateQuestionStatus(user: Principal, questionId: string, status: QuestionStatus): Promise<void>;
+    updateUserProfile(displayName: string): Promise<void>;
     uploadDocument(blob: ExternalBlob, name: string, contentType: string, size: bigint): Promise<string>;
 }
