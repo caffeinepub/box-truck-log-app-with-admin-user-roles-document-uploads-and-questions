@@ -1,21 +1,14 @@
 import { RouterProvider, createRouter, createRoute, createRootRoute, redirect, Outlet } from '@tanstack/react-router';
 import { LocalAuthProvider, useLocalAuth } from './hooks/useLocalAuth';
-import { useGetCallerUserProfile, useIsCallerAdmin } from './hooks/useQueries';
+import { useIsCallerAdmin } from './hooks/useQueries';
 import { Toaster } from '@/components/ui/sonner';
 import { ThemeProvider } from 'next-themes';
 import { useRef, useEffect } from 'react';
 import AppHeader from './components/header/AppHeader';
-import UserDashboardLayout from './pages/user/UserDashboardLayout';
 import AdminDashboardLayout from './pages/admin/AdminDashboardLayout';
-import MyLogsPage from './pages/user/MyLogsPage';
-import MyDocumentsPage from './pages/user/MyDocumentsPage';
-import MyQuestionsPage from './pages/user/MyQuestionsPage';
-import MyChecklistsPage from './pages/user/MyChecklistsPage';
-import AllLogsPage from './pages/admin/AllLogsPage';
-import AllDocumentsPage from './pages/admin/AllDocumentsPage';
-import AllQuestionsPage from './pages/admin/AllQuestionsPage';
 import AllChecklistsPage from './pages/admin/AllChecklistsPage';
-import LoginPage from './pages/LoginPage';
+import PublicChecklistPage from './pages/PublicChecklistPage';
+import AdminLoginPage from './pages/AdminLoginPage';
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -32,74 +25,30 @@ function RootLayout() {
   );
 }
 
-const loginRoute = createRoute({
+// Public checklist route (no authentication required)
+const publicChecklistRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: LoginPage,
+  component: PublicChecklistPage,
 });
 
-const userRoute = createRoute({
+// Admin login route
+const adminLoginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/user',
-  component: UserDashboardLayout,
-  beforeLoad: ({ context }: any) => {
-    if (!context.isAuthenticated) {
-      throw redirect({ to: '/' });
-    }
-  },
+  path: '/admin/login',
+  component: AdminLoginPage,
 });
 
-const userLogsRoute = createRoute({
-  getParentRoute: () => userRoute,
-  path: '/logs',
-  component: MyLogsPage,
-});
-
-const userDocumentsRoute = createRoute({
-  getParentRoute: () => userRoute,
-  path: '/documents',
-  component: MyDocumentsPage,
-});
-
-const userQuestionsRoute = createRoute({
-  getParentRoute: () => userRoute,
-  path: '/questions',
-  component: MyQuestionsPage,
-});
-
-const userChecklistsRoute = createRoute({
-  getParentRoute: () => userRoute,
-  path: '/checklists',
-  component: MyChecklistsPage,
-});
-
+// Admin routes (require authentication)
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/admin',
   component: AdminDashboardLayout,
   beforeLoad: ({ context }: any) => {
     if (!context.isAuthenticated || !context.isAdmin) {
-      throw redirect({ to: '/' });
+      throw redirect({ to: '/admin/login' });
     }
   },
-});
-
-const adminLogsRoute = createRoute({
-  getParentRoute: () => adminRoute,
-  path: '/logs',
-  component: AllLogsPage,
-});
-
-const adminDocumentsRoute = createRoute({
-  getParentRoute: () => adminRoute,
-  path: '/documents',
-  component: AllDocumentsPage,
-});
-
-const adminQuestionsRoute = createRoute({
-  getParentRoute: () => adminRoute,
-  path: '/questions',
-  component: AllQuestionsPage,
 });
 
 const adminChecklistsRoute = createRoute({
@@ -109,14 +58,13 @@ const adminChecklistsRoute = createRoute({
 });
 
 const routeTree = rootRoute.addChildren([
-  loginRoute,
-  userRoute.addChildren([userLogsRoute, userDocumentsRoute, userQuestionsRoute, userChecklistsRoute]),
-  adminRoute.addChildren([adminLogsRoute, adminDocumentsRoute, adminQuestionsRoute, adminChecklistsRoute]),
+  publicChecklistRoute,
+  adminLoginRoute,
+  adminRoute.addChildren([adminChecklistsRoute]),
 ]);
 
 function AppContent() {
   const { isAuthenticated, isInitializing } = useLocalAuth();
-  const { data: userProfile, isLoading: profileLoading } = useGetCallerUserProfile();
   const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
 
   // Create router once and store in ref
@@ -145,7 +93,7 @@ function AppContent() {
     }
   }, [isAuthenticated, isAdmin]);
 
-  if (isInitializing || (isAuthenticated && (profileLoading || adminLoading))) {
+  if (isInitializing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">

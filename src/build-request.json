@@ -1,36 +1,148 @@
 {
   "kind": "build_request",
-  "title": "Fix sign-in name input glitch by preventing TanStack Router recreation",
-  "priority": "high",
+  "title": "Build Burke's Bus Service - Public Pre-Trip Checklist with Admin Dashboard",
+  "projectName": "Burke's Bus Service",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the login/sign-in form glitch where the name input clears itself and blinks while typing by ensuring the TanStack Router instance is not recreated on every render in `frontend/src/App.tsx` (keep the router stable across renders while still receiving updated auth context).",
+      "text": "Create a public-access pre-trip checklist form for a 28-ft box truck with 7 sections: Documents & Cab (18 items), Engine Compartment (9 items), Tires & Wheels (6 items), Brakes & Suspension (6 items), Lights & Electrical (7 items), Box/Cargo Area (7 items), Safety & Emergency (5 items), Final Walk-Around (5 items), and Driver Acknowledgment (2 items). Each item must be a checkbox with the exact labels provided in the pre-checklist.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "The sign and flow it's still glitching I cannot sign in every time I try to type a name in the box It's removing it itself and just blinking as if it's a glitch"
+          "msg-user-prechecklist"
         ]
       },
       "acceptanceCriteria": [
-        "On the login page (`/`), typing into the \"Your Name\" input does not clear, does not lose focus, and does not visually blink/flicker on each keystroke.",
-        "The `LoginPage` component state (e.g., `displayName`) is preserved while typing (i.e., the route component is not remounted on each keystroke).",
-        "Navigation/route-guards still work correctly: unauthenticated users are redirected to `/` when attempting to access `/user/*` or `/admin/*`, and authenticated users can reach their dashboards as before.",
-        "No changes are made to any files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
+        "All 7 sections are rendered with section headers and emojis",
+        "All 65+ checklist items appear as checkboxes with exact labels from the pre-checklist",
+        "Checklist is visually organized and easy to navigate on mobile and desktop"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Implement local browser storage to save checklist progress while users are working on it, so they don't lose their progress if they navigate away or refresh the page before submitting.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-save-progress"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Checkbox states persist in browser localStorage while checklist is in progress",
+        "Progress is cleared after successful submission",
+        "Users can return to an incomplete checklist and see their previous selections"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Create a backend endpoint to accept and store completed pre-trip checklist submissions anonymously. Store all checkbox states, submission timestamp, and any driver acknowledgment information.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-store-checklists"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend stores checklist submissions with all checkbox states",
+        "Each submission includes a timestamp",
+        "Submissions are stored without requiring user authentication",
+        "Data structure supports querying all submissions for admin view"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a submit button to the checklist form that sends the completed checklist to the backend for storage. After successful submission, clear the local browser storage and show a confirmation message.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-submit-checklist"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Submit button is clearly visible at the end of the checklist",
+        "Submission sends all checkbox states to the backend",
+        "Success confirmation is displayed after submission",
+        "Local storage is cleared after successful submission"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Create an admin dashboard accessible only through Internet Identity authentication. The dashboard should be accessible to specific principals for Brent Berkemeier and Wendell.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-admin-login"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin route is protected by Internet Identity authentication",
+        "Only authorized principals (Brent Berkemeier and Wendell) can access the admin dashboard",
+        "Unauthorized users are redirected or shown an access denied message"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Build an admin view that displays all submitted checklists in a table or list format. Include submission timestamps, completion status summary, and the ability to view full details of each checklist submission.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-user-track-submissions"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin can see a list of all checklist submissions",
+        "Each submission shows timestamp and basic completion info",
+        "Admin can click on a submission to view full checklist details",
+        "Submissions are sorted by timestamp (most recent first)"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Ensure the entire application (public checklist and admin dashboard) is fully responsive and works seamlessly on mobile devices (iOS and Android) as well as desktop browsers.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-mobile-desktop"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Checklist form is easy to use on mobile screens with touch-friendly checkboxes",
+        "Admin dashboard is navigable and readable on mobile devices",
+        "Layout adapts appropriately to different screen sizes",
+        "No horizontal scrolling required on mobile"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Design a professional, clean visual theme for Burke's Bus Service that conveys reliability and safety. Use a color palette and typography that reflects the transportation/logistics industry, and apply this theme consistently across both the public checklist and admin dashboard.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-design-direction"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A cohesive color scheme is applied throughout the application",
+        "Typography choices support readability and professionalism",
+        "Visual design reflects transportation/safety industry standards",
+        "Theme is consistent across public and admin interfaces"
       ]
     }
   ],
   "constraints": [
-    "Frontend must not edit immutable paths: `frontend/src/hooks/useInternetIdentity.ts`, `frontend/src/hooks/useInternetIdentity.tsx`, `frontend/src/hooks/useActor.ts`, `frontend/src/main.tsx`, and anything under `frontend/src/components/ui`.",
-    "Keep the backend unchanged unless strictly necessary for the input glitch (this issue should be resolved purely in the frontend)."
+    "Use Internet Identity only for admin authentication, not for public checklist access",
+    "Public checklist must not require any sign-in or authentication",
+    "Checklist items must match exactly the pre-checklist content provided by the user",
+    "Admin access must be restricted to specific principals for Brent Berkemeier and Wendell"
   ],
   "nonGoals": [
-    "Redesigning the login page UI/visual theme beyond what is necessary to stop the input from clearing/blinking.",
-    "Changing the authentication model (local identity + display name) or adding email/password auth.",
-    "Addressing unrelated known issues (e.g., pre-trip checklist glitches) unless they are directly implicated by the router remount issue."
+    "User accounts or profiles for drivers completing checklists",
+    "Editing or deleting submitted checklists",
+    "Real-time notifications or alerts",
+    "Integration with external fleet management systems",
+    "Multi-language support",
+    "Offline functionality beyond local browser storage"
   ],
   "imageRequirements": {
     "required": [],

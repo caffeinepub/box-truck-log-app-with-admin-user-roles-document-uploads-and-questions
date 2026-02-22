@@ -1,14 +1,13 @@
-import Array "mo:core/Array";
-import Text "mo:core/Text";
-import Int "mo:core/Int";
+import List "mo:core/List";
 import Map "mo:core/Map";
 import Bool "mo:core/Bool";
-import List "mo:core/List";
+import Runtime "mo:core/Runtime";
+import Int "mo:core/Int";
+import Array "mo:core/Array";
+import Text "mo:core/Text";
 import Time "mo:core/Time";
 import Iter "mo:core/Iter";
 import Order "mo:core/Order";
-import Runtime "mo:core/Runtime";
-
 import Principal "mo:core/Principal";
 
 import Storage "blob-storage/Storage";
@@ -16,9 +15,7 @@ import MixinStorage "blob-storage/Mixin";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-// USE THE NEW EXTENDED TYPE
-
-
+// SETUP ACTOR WITH DATA MIGRATION
 actor {
   // Setup Access Control and Storage
   let accessControlState = AccessControl.initState();
@@ -72,14 +69,13 @@ actor {
   };
 
   // Pre-Trip Checklist types and storage
-  public type Category = {
-    id : Text;
-    name : Text;
+  public type ChecklistSection = {
+    title : Text;
+    items : [ChecklistItem];
   };
 
   public type ChecklistItem = {
     id : Text;
-    categoryId : Text;
     name : Text;
     prompt : Text;
     defaultChecked : Bool;
@@ -94,8 +90,6 @@ actor {
     driverId : Principal;
   };
 
-  let savedChecklists = Map.empty<Principal, List.List<SavedChecklist>>();
-
   public type PreTripChecklist = {
     signature : Text;
     timestamp : Time.Time;
@@ -104,10 +98,7 @@ actor {
     checked : [(Text, Bool)];
   };
 
-  public type ChecklistConfig = {
-    categories : [Category];
-    items : [ChecklistItem];
-  };
+  public type ChecklistConfig = { sections : [ChecklistSection] };
 
   public type Checklist = {
     config : ChecklistConfig;
@@ -179,7 +170,6 @@ actor {
     // Check if user is registered
     switch (registeredUsers.get(caller)) {
       case (?true) {
-        // Update existing profile
         let profile : UserProfile = {
           name = displayName;
         };
@@ -191,7 +181,6 @@ actor {
     };
   };
 
-  // Check if caller is a registered user (helper for authorization)
   func isRegisteredUser(principal : Principal) : Bool {
     switch (registeredUsers.get(principal)) {
       case (?true) { true };
@@ -200,116 +189,137 @@ actor {
   };
 
   // ================= Checklist Feature Extension ==================
+  // ANONYMOUS ACCESS: Allow anyone (including guests) to get checklist config
   public query ({ caller }) func getChecklistConfig() : async ChecklistConfig {
-    if (not isRegisteredUser(caller)) {
-      Runtime.trap("Unauthorized: Only registered users can access checklist items");
-    };
+    // No authorization check - anonymous access allowed per implementation plan
     {
-      categories = getChecklistCategories();
-      items = getChecklistItems();
+      sections = getChecklistSections();
     };
   };
 
-  func getChecklistCategories() : [Category] {
+  func getChecklistSections() : [ChecklistSection] {
     [
-      { id = "0"; name = "Under the Hood" },
-      { id = "1"; name = "Outside the Truck" },
-      { id = "2"; name = "Cabin" },
-      { id = "3"; name = "Physical Appearance" },
+      {
+        title = "RESTRAINT & CARGO EQUIPMENT";
+        items = [
+          {
+            id = "straps";
+            name = "Surface Inspection: Straps";
+            prompt = "Check for cuts, worn stitching, frayed edges, and hardware damage.";
+            defaultChecked = false;
+          },
+          {
+            id = "sliders";
+            name = "Surface Inspection: Sliders";
+            prompt = "Check for cracks, bends, or other damage; ensure they lock securely.";
+            defaultChecked = false;
+          },
+          {
+            id = "pallet_jack";
+            name = "Check Pallet Jack";
+            prompt = "Inspect for worn wheels, maintain tire pressure, and ensure proper storage.";
+            defaultChecked = false;
+          },
+          {
+            id = "tie_downs";
+            name = "Check Tie-Downs";
+            prompt = "Maintain and secure tie-downs according to guidelines.";
+            defaultChecked = false;
+          },
+        ];
+      },
+      {
+        title = "STRAP CONDITION";
+        items = [
+          {
+            id = "fabric_integrity";
+            name = "Check Fabric Integrity";
+            prompt = "Strap Condition: Ensure integrity without excessive fraying or visible wear.";
+            defaultChecked = false;
+          },
+          {
+            id = "strain_points";
+            name = "Check Strain Points";
+            prompt = "Strap Condition: Inspect strain points for tears or deep abrasions.";
+            defaultChecked = false;
+          },
+          {
+            id = "edge_protection";
+            name = "Check Edge Protection";
+            prompt = "Strap Condition: Verify effectiveness of edge protection.";
+            defaultChecked = false;
+          },
+          {
+            id = "seam_integrity";
+            name = "Check Seam Integrity";
+            prompt = "Strap Condition: Look for weak spots, especially at seams.";
+            defaultChecked = false;
+          },
+        ];
+      },
+      {
+        title = "PALLET JACK";
+        items = [
+          {
+            id = "pallet_jack";
+            name = "Check Pallet Jack";
+            prompt = "Check wheels, ensure proper mounting, and maintain tire pressure.";
+            defaultChecked = false;
+          },
+        ];
+      },
+      {
+        title = "SHELVES & BIN SYSTEM";
+        items = [
+          {
+            id = "secure_fasteners";
+            name = "Check Secure Fasteners";
+            prompt = "Verify all shelves and bins have undamaged and secured fasteners.";
+            defaultChecked = false;
+          },
+          {
+            id = "bin_organization";
+            name = "Check Bin Organization";
+            prompt = "Ensure bins are organized with contents clearly labeled.";
+            defaultChecked = false;
+          },
+          {
+            id = "custom_racks";
+            name = "Check Custom Racks";
+            prompt = "Inspect custom racks for stability and proper attachment.";
+            defaultChecked = false;
+          },
+        ];
+      },
+      {
+        title = "CARGO WALLS & TIE-DOWN POINTS";
+        items = [
+          {
+            id = "inspection_ports";
+            name = "Check Inspection Ports";
+            prompt = "Ensure all ports are in good condition (not twisted) and securely in place.";
+            defaultChecked = false;
+          },
+          {
+            id = "tie_down_points";
+            name = "Check Tie Downs";
+            prompt = "Check fixed cargo tiedowns and maintain for effective securing.";
+            defaultChecked = false;
+          },
+        ];
+      },
     ];
   };
 
-  func getChecklistItems() : [ChecklistItem] {
-    [
-      {
-        id = "coolant";
-        categoryId = "0";
-        name = "Check Coolant";
-        prompt = "Check the coolant level in the engine at least weekly using the gauge on the side of the tank. If below full, open the gasket and check underneath. Ask management for help if more fluids are needed.";
-        defaultChecked = false;
-      },
-      {
-        id = "washers";
-        categoryId = "0";
-        name = "Check Windshield Washers";
-        prompt = "Check the washers underneath the hood. Tell management if they are not properly working.";
-        defaultChecked = false;
-      },
-      { id = "levels"; categoryId = "0"; name = "Check Fluid Levels"; prompt = "Check all fluid levels before driving. Each liquid box is labeled accordingly."; defaultChecked = false },
-      {
-        id = "battery";
-        categoryId = "0";
-        name = "Check Battery";
-        prompt = "Check the battery and ensure there are no leaks. Wipe terminals if they appear heavily corroded, checking for unusual buildup.";
-        defaultChecked = false;
-      },
-      {
-        id = "lights";
-        categoryId = "1";
-        name = "Check All Lights";
-        prompt = "Check if all outside driving, rear, and brake lights are functional. When pressed, verify headlights turn on and blinkers work. Use reverse and check rear backup lights. Alert management if lights are not functioning properly.";
-        defaultChecked = false;
-      },
-      {
-        id = "tire_pressure";
-        categoryId = "1";
-        name = "Check Tire Pressure";
-        prompt = "Check tire pressure manually at least weekly. Optimal pressure range: 65-80 psi. If below or 10 psi above, contact management for correction.";
-        defaultChecked = false;
-      },
-      {
-        id = "cab_lights";
-        categoryId = "1";
-        name = "Check Cab Lights";
-        prompt = "Turn on all headlights, cabin lights, and ensure they are functional. Alert management regarding any malfunctions.";
-        defaultChecked = false;
-      },
-      {
-        id = "mirrors";
-        categoryId = "2";
-        name = "Check Mirrors";
-        prompt = "Check all three mirrors for optimal visibility. Position mirrors to eliminate road blind spots before driving. All should be clean and adjusted for optimal safety.";
-        defaultChecked = false;
-      },
-      {
-        id = "celcius";
-        categoryId = "2";
-        name = "Set Celsius Mode";
-        prompt = "Ensure the climate control system is set to Celsius mode, not Fahrenheit.";
-        defaultChecked = false;
-      },
-      {
-        id = "doors";
-        categoryId = "3";
-        name = "Check Cab Doors";
-        prompt = "Check all locks and doors for proper operation. Check both driver and passenger side for secure locking.";
-        defaultChecked = false;
-      },
-      {
-        id = "badges";
-        categoryId = "3";
-        name = "Check Company Badges";
-        prompt = "Verify that all company badges are properly installed and visible at all times.";
-        defaultChecked = false;
-      },
-      {
-        id = "registration";
-        categoryId = "3";
-        name = "Check Registration";
-        prompt = "Check proof of insurance is present in the dash compartment. Inform management if missing.";
-        defaultChecked = false;
-      },
-    ];
-  };
+  let savedChecklists = Map.empty<Principal, List.List<SavedChecklist>>();
 
+  // ANONYMOUS ACCESS: Allow anyone (including guests) to submit checklists
   public shared ({ caller }) func saveChecklist(driverName : Text, signature : Text, checked : [(Text, Bool)]) : async () {
-    if (not isRegisteredUser(caller)) {
-      Runtime.trap("Unauthorized: Only registered users can submit checklists");
-    };
+    // No authorization check - anonymous submissions allowed per implementation plan
     let checklist : SavedChecklist = {
-      items = getChecklistItems();
+      items = getChecklistSections()[0].items;
       signature;
-      timestamp = Time.now();
+      timestamp = getDayTimestamp(Time.now());
       driverName;
       driverId = caller;
       checked;
@@ -318,25 +328,23 @@ actor {
       case (null) { List.empty<SavedChecklist>() };
       case (?existing) { existing };
     };
-    checklists.add(checklist);
-    savedChecklists.add(caller, checklists);
+    // Remove existing checklist for the same day
+    let filtered = checklists.filter(func(item) { item.timestamp != checklist.timestamp });
+    filtered.add(checklist);
+    savedChecklists.add(caller, filtered);
   };
 
+  // ANONYMOUS ACCESS: Allow anyone (including guests) to submit checklists
   public shared ({ caller }) func saveChecklistFull(checklist : PreTripChecklist) : async () {
-    if (not isRegisteredUser(caller)) {
-      Runtime.trap("Unauthorized: Only registered users can submit checklists");
-    };
-
-    // Security: Enforce that the caller can only save checklists for themselves
-    if (checklist.driverId != caller) {
-      Runtime.trap("Unauthorized: Can only save checklists for yourself");
-    };
-
+    // No authorization check - anonymous submissions allowed per implementation plan
+    
+    // SECURITY: Always use the authenticated caller as driverId
+    // Never trust client-provided driverId to prevent impersonation
     let savedChecklist : SavedChecklist = {
-      items = getChecklistItems();
-      driverId = caller;
+      items = getChecklistSections()[0].items;
+      driverId = caller; // Use authenticated caller, not client-provided value
       signature = checklist.signature;
-      timestamp = checklist.timestamp;
+      timestamp = getDayTimestamp(checklist.timestamp);
       driverName = checklist.driverName;
       checked = checklist.checked;
     };
@@ -345,22 +353,41 @@ actor {
       case (null) { List.empty<SavedChecklist>() };
       case (?existing) { existing };
     };
-
-    checklists.add(savedChecklist);
-    savedChecklists.add(caller, checklists);
+    // Remove existing checklist for the same day
+    let filtered = checklists.filter(func(item) { item.timestamp != savedChecklist.timestamp });
+    filtered.add(savedChecklist);
+    savedChecklists.add(caller, filtered);
   };
 
-  public query ({ caller }) func getCompletedChecklists() : async [SavedChecklist] {
-    if (not isRegisteredUser(caller)) {
-      Runtime.trap("Unauthorized: Only registered users can view completed checklists");
-    };
+  func getDayTimestamp(time : Time.Time) : Time.Time {
+    // Get timestamp at 00:00 of the day
+    time - (time % 86400000000000);
+  };
 
+  // USER ACCESS: Users can view their own completed checklists
+  public query ({ caller }) func getCompletedChecklists() : async [SavedChecklist] {
+    // Users can view their own checklists (including anonymous principals viewing their own)
     switch (savedChecklists.get(caller)) {
       case (null) { [] };
       case (?checklists) { checklists.toArray() };
     };
   };
 
+  // USER ACCESS: Users can view their own checklist by date
+  public query ({ caller }) func getChecklistByDate(date : Time.Time) : async ?SavedChecklist {
+    // Users can view their own checklists (including anonymous principals viewing their own)
+    switch (savedChecklists.get(caller)) {
+      case (null) { null };
+      case (?checklists) {
+        let dailyTimestamp = getDayTimestamp(date);
+        checklists.find(
+          func(checklist) { checklist.timestamp == dailyTimestamp }
+        );
+      };
+    };
+  };
+
+  // ADMIN ONLY: View all saved checklists from all users
   public query ({ caller }) func getAllSavedChecklists() : async [(Principal, [SavedChecklist])] {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can view all saved checklists");
@@ -373,6 +400,7 @@ actor {
     entries.toArray();
   };
 
+  // ADMIN ONLY: Clear checkpoint history
   public shared ({ caller }) func clearCheckpointHistory() : async () {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Only admins can clear checkpoint history");
@@ -701,4 +729,3 @@ actor {
     entries.toArray();
   };
 };
-

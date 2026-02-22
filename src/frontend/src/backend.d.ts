@@ -23,9 +23,9 @@ export interface UploadReference {
     size: bigint;
     timestamp: Time;
 }
-export interface Category {
-    id: string;
-    name: string;
+export interface ChecklistSection {
+    title: string;
+    items: Array<ChecklistItem>;
 }
 export type Time = bigint;
 export interface PreTripChecklist {
@@ -36,8 +36,7 @@ export interface PreTripChecklist {
     driverName: string;
 }
 export interface ChecklistConfig {
-    categories: Array<Category>;
-    items: Array<ChecklistItem>;
+    sections: Array<ChecklistSection>;
 }
 export interface SavedChecklist {
     driverId: Principal;
@@ -57,7 +56,6 @@ export interface LogEntry {
 }
 export interface ChecklistItem {
     id: string;
-    categoryId: string;
     defaultChecked: boolean;
     name: string;
     prompt: string;
@@ -97,6 +95,7 @@ export interface backendInterface {
     getCallerUploads(): Promise<Array<UploadReference>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChecklistByDate(date: Time): Promise<SavedChecklist | null>;
     getChecklistConfig(): Promise<ChecklistConfig>;
     getCompletedChecklists(): Promise<Array<SavedChecklist>>;
     getUserLogEntry(user: Principal, logId: string): Promise<LogEntry>;

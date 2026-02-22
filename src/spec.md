@@ -1,11 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Stop the login/sign-in “Your Name” input from clearing, losing focus, or flickering while typing by preventing TanStack Router from being recreated on every render.
+**Goal:** Build Burke's Bus Service - a public pre-trip checklist application for a 28-ft box truck with an Internet Identity-protected admin dashboard to track all submissions.
 
 **Planned changes:**
-- Update `frontend/src/App.tsx` to keep a single, stable TanStack Router instance across renders while still receiving updated auth context.
-- Ensure the login route component is not remounted on each keystroke so its local state (e.g., `displayName`) remains intact.
-- Verify existing route-guards/redirect behavior remains unchanged for `/user/*` and `/admin/*`.
+- Create a public-access pre-trip checklist form with 7 sections (Documents & Cab, Engine Compartment, Tires & Wheels, Brakes & Suspension, Lights & Electrical, Box/Cargo Area, Safety & Emergency, Final Walk-Around, Driver Acknowledgment) containing 65+ checkbox items
+- Implement local browser storage to save checklist progress before submission
+- Build backend endpoint to store completed checklist submissions with timestamps
+- Add submit button that sends checklist to backend and clears local storage on success
+- Create Internet Identity-protected admin dashboard restricted to specific principals for Brent Berkemeier and Wendell
+- Build admin view displaying all submitted checklists with timestamps and detail views
+- Design responsive interface for mobile (iOS/Android) and desktop
+- Apply professional transportation/logistics industry theme with reliability and safety focus
 
-**User-visible outcome:** On `/`, users can type their name into the sign-in input without it blinking, clearing, or losing focus, and navigation/redirects continue to work as before.
+**User-visible outcome:** Drivers can complete a comprehensive pre-trip checklist on any device without authentication, with progress saved locally. Authorized administrators can log in via Internet Identity to view all completed checklist submissions in a dashboard.

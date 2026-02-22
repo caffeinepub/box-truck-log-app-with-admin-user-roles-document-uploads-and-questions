@@ -4,6 +4,7 @@ import type { UserProfile, LogEntry, UploadReference, Question, QuestionStatus, 
 import { ExternalBlob } from '../backend';
 import { Principal } from '@dfinity/principal';
 import { toast } from 'sonner';
+import { isAuthorizationError, getAuthErrorMessage } from '../utils/authErrors';
 
 // User Registration
 export function useRegisterUser() {
@@ -18,33 +19,62 @@ export function useRegisterUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+      queryClient.invalidateQueries({ queryKey: ['registrationCheck'] });
       toast.success('Registration successful');
     },
     onError: (error: Error) => {
-      toast.error(`Registration failed: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
 
 // User Profile Queries
 export function useGetCallerUserProfile() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      try {
+        return await actor.getCallerUserProfile();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
     retry: false,
   });
 
   return {
     ...query,
     isLoading: actorFetching || query.isLoading,
-    isFetched: !!actor && query.isFetched,
+    isFetched: !!actor && isActorReady && query.isFetched,
   };
+}
+
+export function useGetUserProfile(user: Principal) {
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
+
+  return useQuery<UserProfile | null>({
+    queryKey: ['userProfile', user.toString()],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      try {
+        return await actor.getUserProfile(user);
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          return null;
+        }
+        throw error;
+      }
+    },
+    enabled: !!actor && !actorFetching && isActorReady,
+    retry: false,
+  });
 }
 
 export function useSaveCallerUserProfile() {
@@ -61,41 +91,55 @@ export function useSaveCallerUserProfile() {
       toast.success('Profile saved successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to save profile: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
 
 // Authorization Queries
 export function useIsCallerAdmin() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<boolean>({
     queryKey: ['isCallerAdmin'],
     queryFn: async () => {
       if (!actor) return false;
-      return actor.isCallerAdmin();
+      try {
+        return await actor.isCallerAdmin();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          return false;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
 // Log Entry Queries
 export function useGetCallerLogEntries() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<LogEntry[]>({
     queryKey: ['callerLogEntries'],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCallerLogEntries();
+      try {
+        return await actor.getCallerLogEntries();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
 export function useGetAllLogEntries() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, LogEntry[]][]>({
     queryKey: ['allLogEntries'],
@@ -103,7 +147,7 @@ export function useGetAllLogEntries() {
       if (!actor) return [];
       return actor.getAllLogEntries();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
@@ -122,7 +166,7 @@ export function useCreateLogEntry() {
       toast.success('Log entry created successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to create log entry: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
@@ -142,7 +186,7 @@ export function useUpdateLogEntry() {
       toast.success('Log entry updated successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update log entry: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
@@ -162,27 +206,34 @@ export function useDeleteLogEntry() {
       toast.success('Log entry deleted successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to delete log entry: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
 
 // Document Upload Queries
 export function useGetCallerUploads() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<UploadReference[]>({
     queryKey: ['callerUploads'],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCallerUploads();
+      try {
+        return await actor.getCallerUploads();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
 export function useGetAllUploads() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, UploadReference[]][]>({
     queryKey: ['allUploads'],
@@ -190,7 +241,7 @@ export function useGetAllUploads() {
       if (!actor) return [];
       return actor.getAllUploads();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
@@ -209,27 +260,34 @@ export function useUploadDocument() {
       toast.success('Document uploaded successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to upload document: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
 
 // Question Queries
 export function useGetCallerQuestions() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<Question[]>({
     queryKey: ['callerQuestions'],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCallerQuestions();
+      try {
+        return await actor.getCallerQuestions();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
 export function useGetAllQuestions() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, Question[]][]>({
     queryKey: ['allQuestions'],
@@ -237,7 +295,7 @@ export function useGetAllQuestions() {
       if (!actor) return [];
       return actor.getAllQuestions();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
@@ -256,7 +314,7 @@ export function useSubmitQuestion() {
       toast.success('Question submitted successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to submit question: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
@@ -275,7 +333,7 @@ export function useUpdateQuestionStatus() {
       toast.success('Question status updated');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to update status: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
@@ -294,40 +352,106 @@ export function useAnswerQuestion() {
       toast.success('Answer submitted successfully');
     },
     onError: (error: Error) => {
-      toast.error(`Failed to submit answer: ${error.message}`);
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
 
-// Checklist Queries
+// Checklist Queries - PUBLIC ACCESS (no authentication required)
 export function useGetChecklistConfig() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<ChecklistConfig>({
     queryKey: ['checklistConfig'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getChecklistConfig();
+      try {
+        return await actor.getChecklistConfig();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
+    retry: false,
+  });
+}
+
+// Public checklist submission (anonymous access)
+export function useSaveChecklistAnonymous() {
+  const { actor } = useLocalActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ driverName, signature, checked }: { driverName: string; signature: string; checked: [string, boolean][] }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveChecklist(driverName, signature, checked);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allSavedChecklists'] });
+    },
   });
 }
 
 export function useGetCompletedChecklists() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<SavedChecklist[]>({
     queryKey: ['completedChecklists'],
     queryFn: async () => {
       if (!actor) return [];
-      return actor.getCompletedChecklists();
+      try {
+        return await actor.getCompletedChecklists();
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        throw error;
+      }
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
+    retry: false,
   });
 }
 
+export function useGetChecklistByDate() {
+  const { actor } = useLocalActor();
+
+  return useMutation({
+    mutationFn: async (date: bigint) => {
+      if (!actor) throw new Error('Actor not available');
+      return await actor.getChecklistByDate(date);
+    },
+  });
+}
+
+export function useGetTodayChecklist() {
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
+  const today = BigInt(Math.floor(Date.now() / 86400000) * 86400000 * 1000000);
+
+  return useQuery<SavedChecklist | null>({
+    queryKey: ['todayChecklist', today.toString()],
+    queryFn: async () => {
+      if (!actor) return null;
+      try {
+        return await actor.getChecklistByDate(today);
+      } catch (error) {
+        if (isAuthorizationError(error as Error)) {
+          throw error;
+        }
+        return null;
+      }
+    },
+    enabled: !!actor && !actorFetching && isActorReady,
+    retry: false,
+  });
+}
+
+// Admin-only: View all saved checklists
 export function useGetAllSavedChecklists() {
-  const { actor, isFetching: actorFetching } = useLocalActor();
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, SavedChecklist[]][]>({
     queryKey: ['allSavedChecklists'],
@@ -335,11 +459,28 @@ export function useGetAllSavedChecklists() {
       if (!actor) return [];
       return actor.getAllSavedChecklists();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
 export function useSaveChecklist() {
+  const { actor } = useLocalActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ driverName, signature, checked }: { driverName: string; signature: string; checked: [string, boolean][] }) => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.saveChecklist(driverName, signature, checked);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['completedChecklists'] });
+      queryClient.invalidateQueries({ queryKey: ['todayChecklist'] });
+      queryClient.invalidateQueries({ queryKey: ['allSavedChecklists'] });
+    },
+  });
+}
+
+export function useSaveChecklistFull() {
   const { actor } = useLocalActor();
   const queryClient = useQueryClient();
 
@@ -350,25 +491,8 @@ export function useSaveChecklist() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['completedChecklists'] });
+      queryClient.invalidateQueries({ queryKey: ['todayChecklist'] });
       queryClient.invalidateQueries({ queryKey: ['allSavedChecklists'] });
-      toast.success('Checklist saved successfully');
     },
-    onError: (error: Error) => {
-      toast.error(`Failed to save checklist: ${error.message}`);
-    },
-  });
-}
-
-// User Profile Lookup (for admin views)
-export function useGetUserProfile(user: Principal | null) {
-  const { actor, isFetching: actorFetching } = useLocalActor();
-
-  return useQuery<UserProfile | null>({
-    queryKey: ['userProfile', user?.toString()],
-    queryFn: async () => {
-      if (!actor || !user) return null;
-      return actor.getUserProfile(user);
-    },
-    enabled: !!actor && !actorFetching && !!user,
   });
 }

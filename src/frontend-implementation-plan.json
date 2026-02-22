@@ -1,22 +1,211 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Stabilize TanStack Router instance to prevent login input remount/flicker",
+  "title": "Burke's Bus Service - Public Pre-Trip Checklist with Admin Dashboard (Frontend)",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Prevent TanStack Router recreation in frontend/src/App.tsx by creating a single stable router instance and updating its auth context without remounting routes.",
+      "summary": "Create a public-access pre-trip checklist form for a 28-ft box truck with 7 sections and 65+ items",
       "acceptanceCriteria": [
-        "On the login page (`/`), typing into the \"Your Name\" input does not clear, does not lose focus, and does not visually blink/flicker on each keystroke.",
-        "The `LoginPage` component state (e.g., `displayName`) is preserved while typing (i.e., the route component is not remounted on each keystroke).",
-        "Navigation/route-guards still work correctly: unauthenticated users are redirected to `/` when attempting to access `/user/*` or `/admin/*`, and authenticated users can reach their dashboards as before.",
-        "No changes are made to any files under `frontend/src/components/ui` or other immutable paths listed in SYSTEM_CONTEXT."
+        "All 7 sections are rendered with section headers and emojis",
+        "All 65+ checklist items appear as checkboxes with exact labels from the pre-checklist",
+        "Checklist is visually organized and easy to navigate on mobile and desktop"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/PublicChecklistPage.tsx",
+          "operation": "create",
+          "description": "Create a new public checklist page that renders all 7 sections (Documents & Cab, Engine Compartment, Tires & Wheels, Brakes & Suspension, Lights & Electrical, Box/Cargo Area, Safety & Emergency, Final Walk-Around, Driver Acknowledgment) with their respective items as checkboxes. Structure the form with section headers, emojis, and all 65+ checkbox items with exact labels. Make the layout responsive and touch-friendly for mobile devices."
+        },
+        {
+          "path": "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "operation": "create",
+          "description": "Create the main checklist form component that manages checkbox state, renders sections dynamically, and provides a clean, organized UI. Include logic to handle checkbox interactions and prepare data for submission."
+        },
+        {
+          "path": "frontend/src/components/checklist/ChecklistSectionGroup.tsx",
+          "operation": "create",
+          "description": "Create a reusable section component that displays a checklist section with its title, emoji, and list of checkbox items. Ensure proper spacing and visual hierarchy for readability on all screen sizes."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add a new route for the public checklist page at '/checklist' or root '/'. Ensure this route is accessible without authentication and does not require Internet Identity login."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Implement local browser storage to save checklist progress while users are working on it",
+      "acceptanceCriteria": [
+        "Checkbox states persist in browser localStorage while checklist is in progress",
+        "Progress is cleared after successful submission",
+        "Users can return to an incomplete checklist and see their previous selections"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useChecklistProgress.ts",
+          "operation": "create",
+          "description": "Create a custom hook that manages checklist progress using localStorage. Implement functions to save checkbox states, load saved progress on component mount, and clear progress after successful submission. Use a unique storage key for the checklist data."
+        },
+        {
+          "path": "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "operation": "modify",
+          "description": "Integrate the useChecklistProgress hook to automatically save checkbox changes to localStorage and restore progress when the form loads. Ensure progress is synchronized as users interact with checkboxes."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Add a submit button to the checklist form that sends the completed checklist to the backend",
+      "acceptanceCriteria": [
+        "Submit button is clearly visible at the end of the checklist",
+        "Submission sends all checkbox states to the backend",
+        "Success confirmation is displayed after submission",
+        "Local storage is cleared after successful submission"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "operation": "modify",
+          "description": "Add a submit button at the end of the checklist form that collects all checkbox states, driver name, and signature, then calls the backend's saveChecklist method. Handle submission success by clearing localStorage and showing a confirmation message. Include loading state during submission and error handling for failed submissions."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add a React Query mutation hook for submitting the public checklist using the backend's saveChecklist method. Handle success/error states and provide appropriate feedback to the UI layer."
+        },
+        {
+          "path": "frontend/src/components/checklist/ChecklistSuccessMessage.tsx",
+          "operation": "create",
+          "description": "Create a success confirmation component that displays after a checklist is successfully submitted. Include a message confirming submission and an option to start a new checklist."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Create an admin dashboard accessible only through Internet Identity authentication",
+      "acceptanceCriteria": [
+        "Admin route is protected by Internet Identity authentication",
+        "Only authorized principals (Brent Berkemeier and Wendell) can access the admin dashboard",
+        "Unauthorized users are redirected or shown an access denied message"
       ],
       "file_operations": [
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Refactor router creation so `createRouter(...)` is not executed on every `AppContent` render (e.g., create the router once at module scope or store it in a `useRef` initialized once). Update the router's context when `isAuthenticated`/`isAdmin` change (without creating a new router) so `beforeLoad` guards continue to receive current auth state while routes/components are not remounted during unrelated renders (such as typing into the login form)."
+          "description": "Ensure the existing /admin routes are properly protected with Internet Identity authentication using the authorization component. Verify that the route guards check for admin role using the backend's isCallerAdmin method before allowing access. Add redirect logic for unauthorized users."
+        },
+        {
+          "path": "frontend/src/components/auth/AdminGuard.tsx",
+          "operation": "create",
+          "description": "Create an admin guard component that verifies the authenticated user has admin role by calling the backend's isCallerAdmin method. Show an access denied screen for non-admin users and redirect unauthenticated users to login. Use the authorization component to support role-based access control."
+        },
+        {
+          "path": "frontend/src/components/auth/AccessDeniedScreen.tsx",
+          "operation": "create",
+          "description": "Create an access denied screen component that displays when unauthorized users attempt to access admin routes. Provide a clear message explaining the access restriction and a link to return to the public checklist."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Build an admin view that displays all submitted checklists in a table or list format",
+      "acceptanceCriteria": [
+        "Admin can see a list of all checklist submissions",
+        "Each submission shows timestamp and basic completion info",
+        "Admin can click on a submission to view full checklist details",
+        "Submissions are sorted by timestamp (most recent first)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/admin/AllChecklistsPage.tsx",
+          "operation": "modify",
+          "description": "Enhance the existing AllChecklistsPage to display all submitted checklists from all users using the backend's getAllSavedChecklists method. Show submission timestamp, driver name, and completion summary in a table format sorted by timestamp descending. Ensure the checklist details dialog displays all checkbox states for each submission."
+        },
+        {
+          "path": "frontend/src/components/checklists/ChecklistDetails.tsx",
+          "operation": "modify",
+          "description": "Enhance the existing ChecklistDetails component to display full checklist details including all sections, checkbox states, driver acknowledgment, and signature. Ensure it works with the SavedChecklist data structure from the backend."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Verify that the getAllSavedChecklists query hook properly calls the backend's getAllSavedChecklists method and handles the returned data structure. Ensure proper error handling for authorization failures."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Ensure the entire application is fully responsive and works seamlessly on mobile devices and desktop browsers",
+      "acceptanceCriteria": [
+        "Checklist form is easy to use on mobile screens with touch-friendly checkboxes",
+        "Admin dashboard is navigable and readable on mobile devices",
+        "Layout adapts appropriately to different screen sizes",
+        "No horizontal scrolling required on mobile"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "operation": "modify",
+          "description": "Apply responsive design patterns using Tailwind CSS breakpoints to ensure the checklist form adapts to mobile, tablet, and desktop screens. Increase checkbox touch targets for mobile (minimum 44x44px), use responsive spacing, and ensure proper text wrapping. Test on iOS and Android viewports."
+        },
+        {
+          "path": "frontend/src/components/checklist/ChecklistSectionGroup.tsx",
+          "operation": "modify",
+          "description": "Apply responsive styling to section components to ensure proper rendering on mobile devices. Use mobile-first design with appropriate font sizes, spacing, and layout adjustments for different screen sizes."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+          "operation": "modify",
+          "description": "Enhance the existing admin dashboard layout to be fully responsive on mobile devices. Adjust table layouts to be scrollable or stacked on smaller screens, ensure navigation is touch-friendly, and optimize spacing for mobile viewports."
+        },
+        {
+          "path": "frontend/src/pages/admin/AllChecklistsPage.tsx",
+          "operation": "modify",
+          "description": "Ensure the admin checklists page is responsive by making the table horizontally scrollable on mobile or using a card layout for smaller screens. Optimize filters and actions for touch interaction."
+        },
+        {
+          "path": "frontend/src/components/header/AppHeader.tsx",
+          "operation": "modify",
+          "description": "Ensure the existing app header is fully responsive with proper menu behavior on mobile devices. Consider a hamburger menu for navigation on smaller screens if needed."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Design a professional, clean visual theme for Burke's Bus Service that conveys reliability and safety",
+      "acceptanceCriteria": [
+        "A cohesive color scheme is applied throughout the application",
+        "Typography choices support readability and professionalism",
+        "Visual design reflects transportation/safety industry standards",
+        "Theme is consistent across public and admin interfaces"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Update the existing global styles to implement a professional theme for Burke's Bus Service. Use a transportation industry-appropriate color palette (e.g., deep blues, safety orange, charcoal grays) that conveys reliability and safety. Define CSS variables for the theme colors and ensure proper light/dark mode support if applicable."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Update Tailwind configuration to extend the theme with Burke's Bus Service brand colors. Define custom colors that reflect the transportation/logistics industry (professional blues, safety orange accents, neutral grays). Ensure typography settings support readability with appropriate font weights and sizes."
+        },
+        {
+          "path": "frontend/src/components/header/AppHeader.tsx",
+          "operation": "modify",
+          "description": "Update the existing AppHeader to reflect Burke's Bus Service branding. Use the generated truck logo asset (frontend/public/assets/generated/truck-logo.dim_512x512.png) in the header and apply the new theme colors consistently."
+        },
+        {
+          "path": "frontend/src/pages/PublicChecklistPage.tsx",
+          "operation": "modify",
+          "description": "Apply the Burke's Bus Service theme to the public checklist page. Use the generated hero image (frontend/public/assets/generated/truck-sketch-boxes-hero.dim_1600x900.png) as a visual element if appropriate, and ensure all UI elements follow the professional transportation industry design language."
+        },
+        {
+          "path": "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+          "operation": "modify",
+          "description": "Apply consistent Burke's Bus Service theming to the admin dashboard. Ensure the same professional color scheme, typography, and visual design language is used throughout the admin interface."
         }
       ]
     }

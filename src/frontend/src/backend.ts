@@ -98,9 +98,9 @@ export interface UploadReference {
     size: bigint;
     timestamp: Time;
 }
-export interface Category {
-    id: string;
-    name: string;
+export interface ChecklistSection {
+    title: string;
+    items: Array<ChecklistItem>;
 }
 export type Time = bigint;
 export interface PreTripChecklist {
@@ -118,8 +118,7 @@ export interface _CaffeineStorageCreateCertificateResult {
     blob_hash: string;
 }
 export interface ChecklistConfig {
-    categories: Array<Category>;
-    items: Array<ChecklistItem>;
+    sections: Array<ChecklistSection>;
 }
 export interface SavedChecklist {
     driverId: Principal;
@@ -139,7 +138,6 @@ export interface LogEntry {
 }
 export interface ChecklistItem {
     id: string;
-    categoryId: string;
     defaultChecked: boolean;
     name: string;
     prompt: string;
@@ -190,6 +188,7 @@ export interface backendInterface {
     getCallerUploads(): Promise<Array<UploadReference>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
+    getChecklistByDate(date: Time): Promise<SavedChecklist | null>;
     getChecklistConfig(): Promise<ChecklistConfig>;
     getCompletedChecklists(): Promise<Array<SavedChecklist>>;
     getUserLogEntry(user: Principal, logId: string): Promise<LogEntry>;
@@ -207,7 +206,7 @@ export interface backendInterface {
     updateUserProfile(displayName: string): Promise<void>;
     uploadDocument(blob: ExternalBlob, name: string, contentType: string, size: bigint): Promise<string>;
 }
-import type { ExternalBlob as _ExternalBlob, LogEntry as _LogEntry, Question as _Question, QuestionStatus as _QuestionStatus, Time as _Time, UploadReference as _UploadReference, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
+import type { ExternalBlob as _ExternalBlob, LogEntry as _LogEntry, Question as _Question, QuestionStatus as _QuestionStatus, SavedChecklist as _SavedChecklist, Time as _Time, UploadReference as _UploadReference, UserProfile as _UserProfile, UserRole as _UserRole, _CaffeineStorageRefillInformation as __CaffeineStorageRefillInformation, _CaffeineStorageRefillResult as __CaffeineStorageRefillResult } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _caffeineStorageBlobIsLive(arg0: Uint8Array): Promise<boolean> {
@@ -504,6 +503,20 @@ export class Backend implements backendInterface {
             return from_candid_UserRole_n33(this._uploadFile, this._downloadFile, result);
         }
     }
+    async getChecklistByDate(arg0: Time): Promise<SavedChecklist | null> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getChecklistByDate(arg0);
+                return from_candid_opt_n35(this._uploadFile, this._downloadFile, result);
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getChecklistByDate(arg0);
+            return from_candid_opt_n35(this._uploadFile, this._downloadFile, result);
+        }
+    }
     async getChecklistConfig(): Promise<ChecklistConfig> {
         if (this.processError) {
             try {
@@ -689,14 +702,14 @@ export class Backend implements backendInterface {
     async updateQuestionStatus(arg0: Principal, arg1: string, arg2: QuestionStatus): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.updateQuestionStatus(arg0, arg1, to_candid_QuestionStatus_n35(this._uploadFile, this._downloadFile, arg2));
+                const result = await this.actor.updateQuestionStatus(arg0, arg1, to_candid_QuestionStatus_n36(this._uploadFile, this._downloadFile, arg2));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.updateQuestionStatus(arg0, arg1, to_candid_QuestionStatus_n35(this._uploadFile, this._downloadFile, arg2));
+            const result = await this.actor.updateQuestionStatus(arg0, arg1, to_candid_QuestionStatus_n36(this._uploadFile, this._downloadFile, arg2));
             return result;
         }
     }
@@ -717,14 +730,14 @@ export class Backend implements backendInterface {
     async uploadDocument(arg0: ExternalBlob, arg1: string, arg2: string, arg3: bigint): Promise<string> {
         if (this.processError) {
             try {
-                const result = await this.actor.uploadDocument(await to_candid_ExternalBlob_n37(this._uploadFile, this._downloadFile, arg0), arg1, arg2, arg3);
+                const result = await this.actor.uploadDocument(await to_candid_ExternalBlob_n38(this._uploadFile, this._downloadFile, arg0), arg1, arg2, arg3);
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.uploadDocument(await to_candid_ExternalBlob_n37(this._uploadFile, this._downloadFile, arg0), arg1, arg2, arg3);
+            const result = await this.actor.uploadDocument(await to_candid_ExternalBlob_n38(this._uploadFile, this._downloadFile, arg0), arg1, arg2, arg3);
             return result;
         }
     }
@@ -757,6 +770,9 @@ function from_candid_opt_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n32(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
+    return value.length === 0 ? null : value[0];
+}
+function from_candid_opt_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_SavedChecklist]): SavedChecklist | null {
     return value.length === 0 ? null : value[0];
 }
 function from_candid_opt_n6(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [boolean]): boolean | null {
@@ -904,11 +920,11 @@ async function from_candid_vec_n26(_uploadFile: (file: ExternalBlob) => Promise<
 async function from_candid_vec_n28(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<_UploadReference>): Promise<Array<UploadReference>> {
     return await Promise.all(value.map(async (x)=>await from_candid_UploadReference_n29(_uploadFile, _downloadFile, x)));
 }
-async function to_candid_ExternalBlob_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
+async function to_candid_ExternalBlob_n38(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: ExternalBlob): Promise<_ExternalBlob> {
     return await _uploadFile(value);
 }
-function to_candid_QuestionStatus_n35(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: QuestionStatus): _QuestionStatus {
-    return to_candid_variant_n36(_uploadFile, _downloadFile, value);
+function to_candid_QuestionStatus_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: QuestionStatus): _QuestionStatus {
+    return to_candid_variant_n37(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
     return to_candid_variant_n9(_uploadFile, _downloadFile, value);
@@ -934,7 +950,7 @@ function to_candid_record_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8A
         proposed_top_up_amount: value.proposed_top_up_amount ? candid_some(value.proposed_top_up_amount) : candid_none()
     };
 }
-function to_candid_variant_n36(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: QuestionStatus): {
+function to_candid_variant_n37(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: QuestionStatus): {
     open: null;
 } | {
     answered: null;

@@ -1,83 +1,56 @@
 import { useLocalAuth } from '../../hooks/useLocalAuth';
-import { useGetCallerUserProfile, useIsCallerAdmin } from '../../hooks/useQueries';
-import { useQueryClient } from '@tanstack/react-query';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { LogOut, LogIn } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
+import { Truck, LogOut, Shield } from 'lucide-react';
 
 export default function AppHeader() {
   const { isAuthenticated, logout } = useLocalAuth();
-  const { data: userProfile } = useGetCallerUserProfile();
-  const { data: isAdmin } = useIsCallerAdmin();
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const routerState = useRouterState();
+  const isAdminRoute = routerState.location.pathname.startsWith('/admin');
 
-  const handleAuth = async () => {
-    if (isAuthenticated) {
-      logout();
-      queryClient.clear();
-      navigate({ to: '/' });
-    } else {
-      navigate({ to: '/' });
-    }
-  };
-
-  const handleLogoClick = () => {
-    if (isAuthenticated) {
-      if (isAdmin) {
-        navigate({ to: '/admin/logs' });
-      } else {
-        navigate({ to: '/user/logs' });
-      }
-    } else {
-      navigate({ to: '/' });
-    }
+  const handleLogout = async () => {
+    await logout();
+    navigate({ to: '/' });
   };
 
   return (
-    <header className="border-b border-border bg-card sticky top-0 z-50">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <button onClick={handleLogoClick} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src="/assets/generated/truck-logo.dim_512x512.png" alt="Truck Logo" className="w-10 h-10" />
-            <div className="flex flex-col items-start">
-              <h1 className="text-xl font-bold text-foreground">Berks Bus Service</h1>
-              <p className="text-xs text-muted-foreground">Fleet Management System</p>
-            </div>
-          </button>
-
-          <div className="flex items-center gap-4">
-            {isAuthenticated && userProfile && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground hidden sm:inline">
-                  {userProfile.name}
-                </span>
-                {isAdmin && (
-                  <Badge variant="default" className="bg-primary text-primary-foreground">
-                    Admin
-                  </Badge>
-                )}
-              </div>
-            )}
-            <Button
-              onClick={handleAuth}
-              variant={isAuthenticated ? 'outline' : 'default'}
-              size="sm"
-            >
-              {isAuthenticated ? (
-                <>
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Sign Out
-                </>
-              ) : (
-                <>
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Sign In
-                </>
-              )}
-            </Button>
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="container flex h-16 items-center justify-between px-4">
+        <button
+          onClick={() => navigate({ to: '/' })}
+          className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        >
+          <img
+            src="/assets/generated/truck-logo.dim_512x512.png"
+            alt="Berks Bus Service"
+            className="h-10 w-10"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextElementSibling?.classList.remove('hidden');
+            }}
+          />
+          <Truck className="h-10 w-10 text-primary hidden" />
+          <div className="flex flex-col items-start">
+            <span className="font-bold text-lg leading-tight">Berks Bus Service</span>
+            <span className="text-xs text-muted-foreground">Fleet Management</span>
           </div>
+        </button>
+
+        <div className="flex items-center gap-4">
+          {isAdminRoute && (
+            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
+              <Shield className="w-4 h-4" />
+              <span className="hidden sm:inline">Admin</span>
+            </div>
+          )}
+          
+          {isAuthenticated && (
+            <Button variant="outline" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </Button>
+          )}
         </div>
       </div>
     </header>

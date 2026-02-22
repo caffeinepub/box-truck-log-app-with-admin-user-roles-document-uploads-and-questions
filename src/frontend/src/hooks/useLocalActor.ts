@@ -10,13 +10,16 @@ const ACTOR_QUERY_KEY = 'local-actor';
 export function useLocalActor() {
   const { identity, isAuthenticated } = useLocalAuth();
   const queryClient = useQueryClient();
+  const [isActorReady, setIsActorReady] = useState(false);
 
   const actorQuery = useQuery<backendInterface>({
     queryKey: [ACTOR_QUERY_KEY, identity?.getPrincipal().toString()],
     queryFn: async () => {
       if (!identity) {
         // Return anonymous actor if not authenticated
-        return await createActorWithConfig();
+        const anonymousActor = await createActorWithConfig();
+        setIsActorReady(false); // Anonymous actor is not "ready" for protected operations
+        return anonymousActor;
       }
 
       const actorOptions = {
@@ -28,6 +31,7 @@ export function useLocalActor() {
       const actor = await createActorWithConfig(actorOptions);
       const adminToken = getSecretParameter('caffeineAdminToken') || '';
       await actor._initializeAccessControlWithSecret(adminToken);
+      setIsActorReady(true); // Authenticated actor is ready
       return actor;
     },
     staleTime: Infinity,
@@ -36,7 +40,7 @@ export function useLocalActor() {
 
   // When the actor changes, invalidate dependent queries
   useEffect(() => {
-    if (actorQuery.data) {
+    if (actorQuery.data && isActorReady) {
       queryClient.invalidateQueries({
         predicate: (query) => {
           return !query.queryKey.includes(ACTOR_QUERY_KEY);
@@ -48,11 +52,12 @@ export function useLocalActor() {
         },
       });
     }
-  }, [actorQuery.data, queryClient]);
+  }, [actorQuery.data, isActorReady, queryClient]);
 
   return {
     actor: actorQuery.data || null,
     isFetching: actorQuery.isFetching,
     isAuthenticated,
+    isActorReady: isAuthenticated && isActorReady, // Only ready when authenticated AND actor is initialized
   };
 }

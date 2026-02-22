@@ -10,17 +10,16 @@ import type { ActorMethod } from '@icp-sdk/core/agent';
 import type { IDL } from '@icp-sdk/core/candid';
 import type { Principal } from '@icp-sdk/core/principal';
 
-export interface Category { 'id' : string, 'name' : string }
-export interface ChecklistConfig {
-  'categories' : Array<Category>,
-  'items' : Array<ChecklistItem>,
-}
+export interface ChecklistConfig { 'sections' : Array<ChecklistSection> }
 export interface ChecklistItem {
   'id' : string,
-  'categoryId' : string,
   'defaultChecked' : boolean,
   'name' : string,
   'prompt' : string,
+}
+export interface ChecklistSection {
+  'title' : string,
+  'items' : Array<ChecklistItem>,
 }
 export type ExternalBlob = Uint8Array;
 export interface LogEntry {
@@ -118,6 +117,7 @@ export interface _SERVICE {
   'getCallerUploads' : ActorMethod<[], Array<UploadReference>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getChecklistByDate' : ActorMethod<[Time], [] | [SavedChecklist]>,
   'getChecklistConfig' : ActorMethod<[], ChecklistConfig>,
   'getCompletedChecklists' : ActorMethod<[], Array<SavedChecklist>>,
   'getUserLogEntry' : ActorMethod<[Principal, string], LogEntry>,

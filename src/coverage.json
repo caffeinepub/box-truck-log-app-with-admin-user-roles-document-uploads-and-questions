@@ -1,34 +1,144 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-16T10:27:23.036Z",
+  "generatedAt": "2026-02-20T09:39:53.066Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 1,
-    "implemented": 1,
+    "total": 8,
+    "implemented": 6,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the login/sign-in form glitch where the name input clears itself and blinks while typing by ensuring the TanStack Router instance is not recreated on every render in `frontend/src/App.tsx` (keep the router stable across renders while still receiving updated auth context).",
+        "summary": "Create a public-access pre-trip checklist form for a 28-ft box truck with 7 sections: Documents & Cab (18 items), Engine Compartment (9 items), Tires & Wheels (6 items), Brakes & Suspension (6 items), Lights & Electrical (7 items), Box/Cargo Area (7 items), Safety & Emergency (5 items), Final Walk-Around (5 items), and Driver Acknowledgment (2 items). Each item must be a checkbox with the exact labels provided in the pre-checklist.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/PublicChecklistPage.tsx",
+          "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "frontend/src/components/checklist/ChecklistSectionGroup.tsx",
           "frontend/src/App.tsx"
         ],
         "matchedFiles": [
+          "frontend/src/pages/PublicChecklistPage.tsx",
           "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-2",
+        "summary": "Implement local browser storage to save checklist progress while users are working on it, so they don't lose their progress if they navigate away or refresh the page before submitting.",
+        "status": "missing",
+        "plannedFiles": [
+          "frontend/src/hooks/useChecklistProgress.ts",
+          "frontend/src/components/checklist/PublicChecklistForm.tsx"
+        ],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Create a backend endpoint to accept and store completed pre-trip checklist submissions anonymously. Store all checkbox states, submission timestamp, and any driver acknowledgment information.",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Add a submit button to the checklist form that sends the completed checklist to the backend for storage. After successful submission, clear the local browser storage and show a confirmation message.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "frontend/src/hooks/useQueries.ts",
+          "frontend/src/components/checklist/ChecklistSuccessMessage.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Create an admin dashboard accessible only through Internet Identity authentication. The dashboard should be accessible to specific principals for Brent Berkemeier and Wendell.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/components/auth/AdminGuard.tsx",
+          "frontend/src/components/auth/AccessDeniedScreen.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
+      },
+      {
+        "id": "REQ-6",
+        "summary": "Build an admin view that displays all submitted checklists in a table or list format. Include submission timestamps, completion status summary, and the ability to view full details of each checklist submission.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/admin/AllChecklistsPage.tsx",
+          "frontend/src/components/checklists/ChecklistDetails.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/admin/AllChecklistsPage.tsx",
+          "frontend/src/components/checklists/ChecklistDetails.tsx",
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-7",
+        "summary": "Ensure the entire application (public checklist and admin dashboard) is fully responsive and works seamlessly on mobile devices (iOS and Android) as well as desktop browsers.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/checklist/PublicChecklistForm.tsx",
+          "frontend/src/components/checklist/ChecklistSectionGroup.tsx",
+          "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+          "frontend/src/pages/admin/AllChecklistsPage.tsx",
+          "frontend/src/components/header/AppHeader.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+          "frontend/src/pages/admin/AllChecklistsPage.tsx",
+          "frontend/src/components/header/AppHeader.tsx"
+        ]
+      },
+      {
+        "id": "REQ-8",
+        "summary": "Design a professional, clean visual theme for Burke's Bus Service that conveys reliability and safety. Use a color palette and typography that reflects the transportation/logistics industry, and apply this theme consistently across both the public checklist and admin dashboard.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/index.css",
+          "frontend/tailwind.config.js",
+          "frontend/src/components/header/AppHeader.tsx",
+          "frontend/src/pages/PublicChecklistPage.tsx",
+          "frontend/src/pages/admin/AdminDashboardLayout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/header/AppHeader.tsx",
+          "frontend/src/pages/PublicChecklistPage.tsx",
+          "frontend/src/pages/admin/AdminDashboardLayout.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/components/checklists/ChecklistDetails.tsx",
+    "frontend/src/components/header/AppHeader.tsx",
+    "frontend/src/hooks/useQueries.ts",
+    "frontend/src/pages/AdminLoginPage.tsx",
+    "frontend/src/pages/LoginPage.tsx",
+    "frontend/src/pages/PublicChecklistPage.tsx",
+    "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+    "frontend/src/pages/admin/AllChecklistsPage.tsx",
+    "frontend/src/pages/admin/AllDocumentsPage.tsx",
+    "frontend/src/pages/admin/AllLogsPage.tsx",
+    "frontend/src/pages/admin/AllQuestionsPage.tsx",
+    "frontend/src/pages/user/MyChecklistsPage.tsx",
+    "frontend/src/pages/user/UserDashboardLayout.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

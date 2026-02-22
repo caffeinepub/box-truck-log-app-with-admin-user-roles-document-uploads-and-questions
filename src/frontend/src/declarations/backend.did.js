@@ -47,7 +47,6 @@ export const Question = IDL.Record({
 });
 export const ChecklistItem = IDL.Record({
   'id' : IDL.Text,
-  'categoryId' : IDL.Text,
   'defaultChecked' : IDL.Bool,
   'name' : IDL.Text,
   'prompt' : IDL.Text,
@@ -71,10 +70,12 @@ export const UploadReference = IDL.Record({
   'timestamp' : Time,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
-export const Category = IDL.Record({ 'id' : IDL.Text, 'name' : IDL.Text });
-export const ChecklistConfig = IDL.Record({
-  'categories' : IDL.Vec(Category),
+export const ChecklistSection = IDL.Record({
+  'title' : IDL.Text,
   'items' : IDL.Vec(ChecklistItem),
+});
+export const ChecklistConfig = IDL.Record({
+  'sections' : IDL.Vec(ChecklistSection),
 });
 export const PreTripChecklist = IDL.Record({
   'driverId' : IDL.Principal,
@@ -146,6 +147,7 @@ export const idlService = IDL.Service({
   'getCallerUploads' : IDL.Func([], [IDL.Vec(UploadReference)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getChecklistByDate' : IDL.Func([Time], [IDL.Opt(SavedChecklist)], ['query']),
   'getChecklistConfig' : IDL.Func([], [ChecklistConfig], ['query']),
   'getCompletedChecklists' : IDL.Func([], [IDL.Vec(SavedChecklist)], ['query']),
   'getUserLogEntry' : IDL.Func(
@@ -238,7 +240,6 @@ export const idlFactory = ({ IDL }) => {
   });
   const ChecklistItem = IDL.Record({
     'id' : IDL.Text,
-    'categoryId' : IDL.Text,
     'defaultChecked' : IDL.Bool,
     'name' : IDL.Text,
     'prompt' : IDL.Text,
@@ -262,10 +263,12 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
-  const Category = IDL.Record({ 'id' : IDL.Text, 'name' : IDL.Text });
-  const ChecklistConfig = IDL.Record({
-    'categories' : IDL.Vec(Category),
+  const ChecklistSection = IDL.Record({
+    'title' : IDL.Text,
     'items' : IDL.Vec(ChecklistItem),
+  });
+  const ChecklistConfig = IDL.Record({
+    'sections' : IDL.Vec(ChecklistSection),
   });
   const PreTripChecklist = IDL.Record({
     'driverId' : IDL.Principal,
@@ -337,6 +340,11 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUploads' : IDL.Func([], [IDL.Vec(UploadReference)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getChecklistByDate' : IDL.Func(
+        [Time],
+        [IDL.Opt(SavedChecklist)],
+        ['query'],
+      ),
     'getChecklistConfig' : IDL.Func([], [ChecklistConfig], ['query']),
     'getCompletedChecklists' : IDL.Func(
         [],

@@ -1,24 +1,116 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
-  "architectural_notes": [],
-  "known_issues": [
-    "Sign-in flow is glitching: user cannot reliably sign in; typing a name in the input box deletes itself and the field blinks."
+  "summary": "Burke's Bus Service - A pre-trip checklist app for 28-ft box trucks with public access for drivers and admin dashboard for tracking submissions",
+  "architectural_notes": [
+    "Public checklist access requires no authentication for regular users",
+    "Admin authentication uses Internet Identity for Brent Berkemeier and Wendell",
+    "Checklist progress stored in local browser storage (localStorage)",
+    "Completed checklist submissions stored server-side anonymously",
+    "Mobile-first responsive design for field use"
   ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-fix-the-login-sign-in-form-glitch-where-the-name-input-clears-itself-and-blinks-while-typing-by-ensuring-the-tanstack-router-instance-is-not-recreated-on-every-render-in-frontend-src-app-tsx-keep-the-router-stable-across-renders-while-still-receiving-updated-auth-context",
-      "title": "Fix the login/sign-in form glitch where the name input clears itself and blinks while typing by ensuring the TanStack Router instance is not recreated on every render in `frontend/src/App.tsx` (keep the router stable across renders while still receiving updated auth context).",
+      "id": "feature-create-a-public-access-pre-trip-checklist-form-for-a-28-ft-box-truck-with-7-sections-documents-cab-18-items-engine-compartment-9-items-tires-wheels-6-items-brakes-suspension-6-items-lights-electrical-7-items-box-cargo-area-7-items-safety-emergency-5-items-final-walk-around-5-items-and-driver-acknowledgment-2-items-each-item-must-be-a-checkbox-with-the-exact-labels-provided-in-the-pre-checklist",
+      "title": "Create a public-access pre-trip checklist form for a 28-ft box truck with 7 sections: Documents & Cab (18 items), Engine Compartment (9 items), Tires & Wheels (6 items), Brakes & Suspension (6 items), Lights & Electrical (7 items), Box/Cargo Area (7 items), Safety & Emergency (5 items), Final Walk-Around (5 items), and Driver Acknowledgment (2 items). Each item must be a checkbox with the exact labels provided in the pre-checklist.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-submit-button-to-the-checklist-form-that-sends-the-completed-checklist-to-the-backend-for-storage-after-successful-submission-clear-the-local-browser-storage-and-show-a-confirmation-message",
+      "title": "Add a submit button to the checklist form that sends the completed checklist to the backend for storage. After successful submission, clear the local browser storage and show a confirmation message.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-dashboard-accessible-only-through-internet-identity-authentication-the-dashboard-should-be-accessible-to-specific-principals-for-brent-berkemeier-and-wendell",
+      "title": "Create an admin dashboard accessible only through Internet Identity authentication. The dashboard should be accessible to specific principals for Brent Berkemeier and Wendell.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-an-admin-view-that-displays-all-submitted-checklists-in-a-table-or-list-format-include-submission-timestamps-completion-status-summary-and-the-ability-to-view-full-details-of-each-checklist-submission",
+      "title": "Build an admin view that displays all submitted checklists in a table or list format. Include submission timestamps, completion status summary, and the ability to view full details of each checklist submission.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-entire-application-public-checklist-and-admin-dashboard-is-fully-responsive-and-works-seamlessly-on-mobile-devices-ios-and-android-as-well-as-desktop-browsers",
+      "title": "Ensure the entire application (public checklist and admin dashboard) is fully responsive and works seamlessly on mobile devices (iOS and Android) as well as desktop browsers.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-design-a-professional-clean-visual-theme-for-burke-s-bus-service-that-conveys-reliability-and-safety-use-a-color-palette-and-typography-that-reflects-the-transportation-logistics-industry-and-apply-this-theme-consistently-across-both-the-public-checklist-and-admin-dashboard",
+      "title": "Design a professional, clean visual theme for Burke's Bus Service that conveys reliability and safety. Use a color palette and typography that reflects the transportation/logistics industry, and apply this theme consistently across both the public checklist and admin dashboard.",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "version": 1
     }
   ],
-  "new_feature_requests": [],
-  "projectName": "Fix sign-in name input glitch by preventing TanStack Router recreation",
+  "new_feature_requests": [
+    {
+      "id": "AR-1",
+      "summary": "Public pre-trip checklist with 7 sections (Documents & Cab, Engine Compartment, Tires & Wheels, Brakes & Suspension, Lights & Electrical, Box/Cargo Area, Safety & Emergency, Final Walk-Around, Driver Acknowledgment)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-2",
+      "summary": "Local browser storage for checklist progress while users work on it",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-3",
+      "summary": "Anonymous submission and server-side storage of completed checklists",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Admin dashboard with Internet Identity login for Brent Berkemeier and Wendell to view and track all submitted checklists with timestamps",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Mobile and desktop responsive design",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Implement local browser storage to save checklist progress while users are working on it, so they don't lose their progress if they navigate away or refresh the page before submitting.",
+      "reqIds": [
+        "REQ-2"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Create a backend endpoint to accept and store completed pre-trip checklist submissions anonymously. Store all checkbox states, submission timestamp, and any driver acknowledgment information.",
+      "reqIds": [
+        "REQ-3"
+      ],
+      "status": "pending"
+    }
+  ],
+  "gameProjectType": "none",
+  "projectName": "Burke's Bus Service",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

@@ -2,8 +2,49 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-login-sign-in-form-glitch-where-the-name-input-clears-itself-and-blinks-while-typing-by-ensuring-the-tanstack-router-instance-is-not-recreated-on-every-render-in-frontend-src-app-tsx-keep-the-router-stable-across-renders-while-still-receiving-updated-auth-context",
-      "featureTitle": "Fix the login/sign-in form glitch where the name input clears itself and blinks while typing by ensuring the TanStack Router instance is not recreated on every render in `frontend/src/App.tsx` (keep the router stable across renders while still receiving updated auth context).",
+      "featureId": "feature-create-a-public-access-pre-trip-checklist-form-for-a-28-ft-box-truck-with-7-sections-documents-cab-18-items-engine-compartment-9-items-tires-wheels-6-items-brakes-suspension-6-items-lights-electrical-7-items-box-cargo-area-7-items-safety-emergency-5-items-final-walk-around-5-items-and-driver-acknowledgment-2-items-each-item-must-be-a-checkbox-with-the-exact-labels-provided-in-the-pre-checklist",
+      "featureTitle": "Create a public-access pre-trip checklist form for a 28-ft box truck with 7 sections: Documents & Cab (18 items), Engine Compartment (9 items), Tires & Wheels (6 items), Brakes & Suspension (6 items), Lights & Electrical (7 items), Box/Cargo Area (7 items), Safety & Emergency (5 items), Final Walk-Around (5 items), and Driver Acknowledgment (2 items). Each item must be a checkbox with the exact labels provided in the pre-checklist.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/pages/PublicChecklistPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-add-a-submit-button-to-the-checklist-form-that-sends-the-completed-checklist-to-the-backend-for-storage-after-successful-submission-clear-the-local-browser-storage-and-show-a-confirmation-message",
+      "featureTitle": "Add a submit button to the checklist form that sends the completed checklist to the backend for storage. After successful submission, clear the local browser storage and show a confirmation message.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-4"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-an-admin-dashboard-accessible-only-through-internet-identity-authentication-the-dashboard-should-be-accessible-to-specific-principals-for-brent-berkemeier-and-wendell",
+      "featureTitle": "Create an admin dashboard accessible only through Internet Identity authentication. The dashboard should be accessible to specific principals for Brent Berkemeier and Wendell.",
       "files": [
         "frontend/src/App.tsx"
       ],
@@ -17,7 +58,73 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-5"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-build-an-admin-view-that-displays-all-submitted-checklists-in-a-table-or-list-format-include-submission-timestamps-completion-status-summary-and-the-ability-to-view-full-details-of-each-checklist-submission",
+      "featureTitle": "Build an admin view that displays all submitted checklists in a table or list format. Include submission timestamps, completion status summary, and the ability to view full details of each checklist submission.",
+      "files": [
+        "frontend/src/components/checklists/ChecklistDetails.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/admin/AllChecklistsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-6"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-entire-application-public-checklist-and-admin-dashboard-is-fully-responsive-and-works-seamlessly-on-mobile-devices-ios-and-android-as-well-as-desktop-browsers",
+      "featureTitle": "Ensure the entire application (public checklist and admin dashboard) is fully responsive and works seamlessly on mobile devices (iOS and Android) as well as desktop browsers.",
+      "files": [
+        "frontend/src/components/header/AppHeader.tsx",
+        "frontend/src/pages/admin/AdminDashboardLayout.tsx",
+        "frontend/src/pages/admin/AllChecklistsPage.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-design-a-professional-clean-visual-theme-for-burke-s-bus-service-that-conveys-reliability-and-safety-use-a-color-palette-and-typography-that-reflects-the-transportation-logistics-industry-and-apply-this-theme-consistently-across-both-the-public-checklist-and-admin-dashboard",
+      "featureTitle": "Design a professional, clean visual theme for Burke's Bus Service that conveys reliability and safety. Use a color palette and typography that reflects the transportation/logistics industry, and apply this theme consistently across both the public checklist and admin dashboard.",
+      "files": [
+        "frontend/src/components/header/AppHeader.tsx",
+        "frontend/src/pages/PublicChecklistPage.tsx",
+        "frontend/src/pages/admin/AdminDashboardLayout.tsx"
+      ],
+      "components": [
+        "authorization@4.0.0",
+        "blob-storage@4.0.0",
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-8"
       ],
       "confidence": "high"
     }
