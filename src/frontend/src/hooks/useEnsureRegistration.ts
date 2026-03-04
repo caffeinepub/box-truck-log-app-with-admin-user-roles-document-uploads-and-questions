@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useLocalActor } from './useLocalActor';
-import { useLocalAuth } from './useLocalAuth';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { UserProfile } from '../backend';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { UserProfile } from "../backend";
+import { useLocalActor } from "./useLocalActor";
+import { useLocalAuth } from "./useLocalAuth";
 
 /**
  * Hook that ensures the authenticated user is registered with the backend
@@ -14,11 +14,13 @@ export function useEnsureRegistration() {
   const { displayName } = useLocalAuth();
   const queryClient = useQueryClient();
   const [isRegistering, setIsRegistering] = useState(false);
-  const [registrationError, setRegistrationError] = useState<Error | null>(null);
+  const [registrationError, setRegistrationError] = useState<Error | null>(
+    null,
+  );
 
   // Check if user has a profile (which indicates registration)
   const profileQuery = useQuery<UserProfile | null>({
-    queryKey: ['registrationCheck'],
+    queryKey: ["registrationCheck"],
     queryFn: async () => {
       if (!actor || !isAuthenticated) return null;
       try {
@@ -26,7 +28,10 @@ export function useEnsureRegistration() {
       } catch (error) {
         // If we get an auth error, user is not registered
         const err = error as Error;
-        if (err.message.includes('Unauthorized') || err.message.includes('not registered')) {
+        if (
+          err.message.includes("Unauthorized") ||
+          err.message.includes("not registered")
+        ) {
           return null;
         }
         throw error;
@@ -50,17 +55,17 @@ export function useEnsureRegistration() {
         try {
           await actor.registerUser(displayName);
           // Invalidate all queries after successful registration
-          queryClient.invalidateQueries({ queryKey: ['registrationCheck'] });
-          queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-          queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
+          queryClient.invalidateQueries({ queryKey: ["registrationCheck"] });
+          queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
+          queryClient.invalidateQueries({ queryKey: ["isCallerAdmin"] });
         } catch (error) {
           const err = error as Error;
           // Only set error if it's not "already registered"
-          if (!err.message.includes('already registered')) {
+          if (!err.message.includes("already registered")) {
             setRegistrationError(err);
           } else {
             // If already registered, just refetch profile
-            queryClient.invalidateQueries({ queryKey: ['registrationCheck'] });
+            queryClient.invalidateQueries({ queryKey: ["registrationCheck"] });
           }
         } finally {
           setIsRegistering(false);
@@ -69,10 +74,22 @@ export function useEnsureRegistration() {
     };
 
     attemptRegistration();
-  }, [actor, isAuthenticated, profileQuery.isFetched, profileQuery.data, displayName, isRegistering, registrationError, queryClient]);
+  }, [
+    actor,
+    isAuthenticated,
+    profileQuery.isFetched,
+    profileQuery.data,
+    displayName,
+    isRegistering,
+    registrationError,
+    queryClient,
+  ]);
 
   return {
-    isReady: isAuthenticated && profileQuery.isFetched && (profileQuery.data !== null || isRegistering),
+    isReady:
+      isAuthenticated &&
+      profileQuery.isFetched &&
+      (profileQuery.data !== null || isRegistering),
     isRegistering,
     registrationError,
     isCheckingRegistration: profileQuery.isLoading || profileQuery.isFetching,

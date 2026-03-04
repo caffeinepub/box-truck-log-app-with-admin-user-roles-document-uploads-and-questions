@@ -1,71 +1,89 @@
-import { useState } from 'react';
-import { useGetAllSavedChecklists, useGetUserProfile } from '../../hooks/useQueries';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Eye, CheckCircle2, XCircle, Calendar, User } from 'lucide-react';
-import type { SavedChecklist } from '../../backend';
-import { Principal } from '@dfinity/principal';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Calendar,
+  CheckCircle2,
+  Eye,
+  Search,
+  Trash2,
+  User,
+  XCircle,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import {
+  type ChecklistSubmissionRecord,
+  SUBMISSIONS_KEY,
+  getStoredSubmissions,
+} from "../PublicChecklistPage";
 
 export default function AllChecklistsPage() {
-  const { data: allChecklists, isLoading } = useGetAllSavedChecklists();
-  const [selectedChecklist, setSelectedChecklist] = useState<SavedChecklist | null>(null);
-  const [selectedDriver, setSelectedDriver] = useState<Principal | null>(null);
+  const [submissions, setSubmissions] = useState<ChecklistSubmissionRecord[]>(
+    () => getStoredSubmissions(),
+  );
+  const [selectedSubmission, setSelectedSubmission] =
+    useState<ChecklistSubmissionRecord | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Flatten all checklists with driver info
-  const flattenedChecklists = allChecklists?.flatMap(([principal, checklists]) =>
-    checklists.map((checklist) => ({
-      ...checklist,
-      driverPrincipal: principal,
-    }))
-  ) || [];
+  const filteredSubmissions = useMemo(() => {
+    if (!searchQuery.trim()) return submissions;
+    const q = searchQuery.toLowerCase();
+    return submissions.filter((s) => s.driverName.toLowerCase().includes(q));
+  }, [submissions, searchQuery]);
 
-  // Sort by timestamp descending (most recent first)
-  const sortedChecklists = [...flattenedChecklists].sort((a, b) => {
-    const timeA = Number(a.timestamp);
-    const timeB = Number(b.timestamp);
-    return timeB - timeA;
-  });
+  const formatDate = (ts: number) =>
+    new Date(ts).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
 
-  const formatDate = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) / 1000000);
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const formatTime = (ts: number) =>
+    new Date(ts).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
+  const handleDelete = (id: string) => {
+    const updated = submissions.filter((s) => s.id !== id);
+    setSubmissions(updated);
+    localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(updated));
+    if (selectedSubmission?.id === id) setSelectedSubmission(null);
+    toast.success("Submission deleted");
   };
 
-  const formatTime = (timestamp: bigint) => {
-    const date = new Date(Number(timestamp) / 1000000);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getCompletionStats = (checklist: SavedChecklist) => {
-    const total = checklist.checked.length;
-    const completed = checklist.checked.filter(([_, checked]) => checked).length;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-    return { completed, total, percentage };
-  };
-
-  if (isLoading) {
+  if (submissions.length === 0) {
     return (
-      <Card className="border-2">
-        <CardContent className="py-12">
-          <div className="text-center space-y-4">
-            <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground">Loading checklists...</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (sortedChecklists.length === 0) {
-    return (
-      <Card className="border-2">
+      <Card className="border-2" data-ocid="admin.checklists.empty_state">
         <CardHeader>
           <CardTitle>All Submitted Checklists</CardTitle>
-          <CardDescription>View and monitor all driver pre-trip inspections</CardDescription>
+          <CardDescription>
+            View and monitor all driver pre-trip inspections
+          </CardDescription>
         </CardHeader>
         <CardContent className="py-12">
           <div className="text-center space-y-4">
@@ -74,7 +92,9 @@ export default function AllChecklistsPage() {
             </div>
             <div>
               <p className="font-medium">No checklists submitted yet</p>
-              <p className="text-sm text-muted-foreground">Checklists will appear here once drivers submit them</p>
+              <p className="text-sm text-muted-foreground">
+                Checklists will appear here once drivers submit them
+              </p>
             </div>
           </div>
         </CardContent>
@@ -84,14 +104,28 @@ export default function AllChecklistsPage() {
 
   return (
     <>
-      <Card className="border-2">
+      <Card className="border-2" data-ocid="admin.checklists.table">
         <CardHeader>
           <CardTitle>All Submitted Checklists</CardTitle>
           <CardDescription>
-            {sortedChecklists.length} inspection{sortedChecklists.length !== 1 ? 's' : ''} submitted
+            {filteredSubmissions.length} inspection
+            {filteredSubmissions.length !== 1 ? "s" : ""}
+            {searchQuery && ` (filtered from ${submissions.length} total)`}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by driver name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+              data-ocid="admin.checklists.search_input"
+            />
+          </div>
+
           <ScrollArea className="h-[600px] pr-4">
             <Table>
               <TableHeader>
@@ -104,175 +138,195 @@ export default function AllChecklistsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {sortedChecklists.map((checklist, index) => {
-                  const stats = getCompletionStats(checklist);
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">{formatDate(checklist.timestamp)}</div>
-                            <div className="text-xs text-muted-foreground">{formatTime(checklist.timestamp)}</div>
+                {filteredSubmissions.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-center py-8 text-muted-foreground"
+                    >
+                      No checklists match your search
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredSubmissions.map((submission, index) => {
+                    const pct =
+                      submission.totalItems > 0
+                        ? Math.round(
+                            (submission.checkedCount / submission.totalItems) *
+                              100,
+                          )
+                        : 0;
+                    return (
+                      <TableRow
+                        key={submission.id}
+                        data-ocid={`admin.checklists.row.${index + 1}`}
+                      >
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">
+                                {formatDate(submission.timestamp)}
+                              </div>
+                              <div className="text-xs text-muted-foreground">
+                                {formatTime(submission.timestamp)}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-muted-foreground" />
-                          <div>
-                            <div className="font-medium">{checklist.driverName}</div>
-                            <DriverPrincipalDisplay principal={checklist.driverPrincipal} />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <User className="w-4 h-4 text-muted-foreground" />
+                            <div>
+                              <div className="font-medium">
+                                {submission.driverName}
+                              </div>
+                              <div className="text-xs text-muted-foreground italic">
+                                {submission.signature}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium">
-                            {stats.completed} / {stats.total}
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <div className="text-sm font-medium">
+                              {submission.checkedCount} /{" "}
+                              {submission.totalItems}
+                            </div>
+                            <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
                           </div>
-                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-primary transition-all"
-                              style={{ width: `${stats.percentage}%` }}
-                            />
+                        </TableCell>
+                        <TableCell>
+                          {pct === 100 ? (
+                            <Badge variant="default" className="gap-1">
+                              <CheckCircle2 className="w-3 h-3" />
+                              Complete
+                            </Badge>
+                          ) : (
+                            <Badge variant="secondary" className="gap-1">
+                              <XCircle className="w-3 h-3" />
+                              Partial
+                            </Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setSelectedSubmission(submission)}
+                              data-ocid={`admin.checklists.edit_button.${index + 1}`}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              View
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDelete(submission.id)}
+                              className="text-destructive hover:text-destructive"
+                              data-ocid={`admin.checklists.delete_button.${index + 1}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {stats.percentage === 100 ? (
-                          <Badge variant="default" className="gap-1">
-                            <CheckCircle2 className="w-3 h-3" />
-                            Complete
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1">
-                            <XCircle className="w-3 h-3" />
-                            Partial
-                          </Badge>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedChecklist(checklist);
-                            setSelectedDriver(checklist.driverPrincipal);
-                          }}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
               </TableBody>
             </Table>
           </ScrollArea>
         </CardContent>
       </Card>
 
-      {/* Checklist Details Dialog */}
-      <Dialog open={!!selectedChecklist} onOpenChange={() => setSelectedChecklist(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <Dialog
+        open={!!selectedSubmission}
+        onOpenChange={() => setSelectedSubmission(null)}
+      >
+        <DialogContent
+          className="max-w-2xl max-h-[90vh] overflow-y-auto"
+          data-ocid="admin.checklists.dialog"
+        >
           <DialogHeader>
             <DialogTitle>Checklist Details</DialogTitle>
             <DialogDescription>
-              Submitted by {selectedChecklist?.driverName} on{' '}
-              {selectedChecklist && formatDate(selectedChecklist.timestamp)}
+              Submitted by {selectedSubmission?.driverName} on{" "}
+              {selectedSubmission && formatDate(selectedSubmission.timestamp)}{" "}
+              at{" "}
+              {selectedSubmission && formatTime(selectedSubmission.timestamp)}
             </DialogDescription>
           </DialogHeader>
-          {selectedChecklist && <ChecklistDetailsView checklist={selectedChecklist} />}
+          {selectedSubmission && (
+            <div className="space-y-4 mt-2">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="font-medium text-muted-foreground">Driver</p>
+                  <p>{selectedSubmission.driverName}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-muted-foreground">Signature</p>
+                  <p>{selectedSubmission.signature}</p>
+                </div>
+                <div>
+                  <p className="font-medium text-muted-foreground">
+                    Items Checked
+                  </p>
+                  <p>
+                    {selectedSubmission.checkedCount} /{" "}
+                    {selectedSubmission.totalItems} (
+                    {selectedSubmission.totalItems > 0
+                      ? Math.round(
+                          (selectedSubmission.checkedCount /
+                            selectedSubmission.totalItems) *
+                            100,
+                        )
+                      : 0}
+                    %)
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                {selectedSubmission.sections.map((section) => (
+                  <div key={section.title} className="border rounded-lg p-3">
+                    <h4 className="font-semibold text-sm mb-2">
+                      {section.emoji} {section.title}
+                    </h4>
+                    <div className="space-y-1">
+                      {section.items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex items-center gap-2 text-sm"
+                        >
+                          {item.checked ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-muted-foreground shrink-0" />
+                          )}
+                          <span
+                            className={
+                              item.checked ? "" : "text-muted-foreground"
+                            }
+                          >
+                            {item.label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </>
-  );
-}
-
-function DriverPrincipalDisplay({ principal }: { principal: Principal }) {
-  const { data: profile } = useGetUserProfile(principal);
-  
-  return (
-    <div className="text-xs text-muted-foreground font-mono">
-      {profile?.name || principal.toString().slice(0, 8) + '...'}
-    </div>
-  );
-}
-
-function ChecklistDetailsView({ checklist }: { checklist: SavedChecklist }) {
-  const checkedMap = new Map(checklist.checked);
-  const stats = {
-    completed: checklist.checked.filter(([_, checked]) => checked).length,
-    total: checklist.checked.length,
-  };
-
-  // Group items by section (based on the original structure)
-  const sections = [
-    { title: 'Documents & Cab', emoji: '🗂', ids: ['drivers_license', 'registration', 'trip_paperwork', 'dot_inspection', 'emergency_contacts', 'fire_extinguisher', 'reflective_triangles', 'first_aid_kit', 'seatbelt', 'horn', 'windshield', 'wipers', 'mirrors', 'dashboard_lights'] },
-    { title: 'Engine Compartment', emoji: '🔧', ids: ['engine_oil', 'coolant', 'power_steering', 'brake_fluid', 'washer_fluid', 'belts_hoses', 'battery', 'fluid_leaks'] },
-    { title: 'Tires & Wheels', emoji: '🛞', ids: ['tire_pressure', 'tread_depth', 'tire_damage', 'lug_nuts', 'valve_stems', 'wheel_rims'] },
-    { title: 'Brakes & Suspension', emoji: '🛑', ids: ['air_brake', 'parking_brake', 'brake_pedal', 'air_lines', 'shock_absorbers', 'leaf_springs'] },
-    { title: 'Lights & Electrical', emoji: '💡', ids: ['headlights', 'turn_signals', 'brake_lights', 'hazard_lights', 'clearance_lights', 'license_plate_light', 'cargo_light'] },
-    { title: 'Box / Cargo Area', emoji: '🚪', ids: ['cargo_secured', 'no_shifting', 'doors_open', 'door_latches', 'door_tracks', 'floor_solid', 'roof_dry'] },
-    { title: 'Safety & Emergency', emoji: '🧯', ids: ['fire_extinguisher_accessible', 'reflective_triangles_present', 'backup_alarm', 'camera_system', 'fuel_level'] },
-    { title: 'Final Walk-Around', emoji: '🚦', ids: ['body_damage', 'hanging_wires', 'visible_leaks', 'mud_flaps', 'exhaust_system'] },
-    { title: 'Driver Acknowledgment', emoji: '📝', ids: ['vehicle_safe', 'defects_reported'] },
-  ];
-
-  return (
-    <div className="space-y-6">
-      {/* Summary */}
-      <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-        <div>
-          <p className="text-sm text-muted-foreground">Completion Rate</p>
-          <p className="text-2xl font-bold">
-            {stats.completed} / {stats.total}
-          </p>
-        </div>
-        <div className="text-right">
-          <p className="text-sm text-muted-foreground">Signature</p>
-          <p className="font-medium">{checklist.signature}</p>
-        </div>
-      </div>
-
-      {/* Sections */}
-      {sections.map((section, idx) => {
-        const sectionItems = section.ids.map(id => ({
-          id,
-          checked: checkedMap.get(id) || false,
-        }));
-        const sectionCompleted = sectionItems.filter(item => item.checked).length;
-
-        return (
-          <div key={idx} className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="font-semibold flex items-center gap-2">
-                <span className="text-xl">{section.emoji}</span>
-                {section.title}
-              </h3>
-              <Badge variant="outline">
-                {sectionCompleted} / {sectionItems.length}
-              </Badge>
-            </div>
-            <div className="space-y-2 pl-8">
-              {sectionItems.map((item) => (
-                <div key={item.id} className="flex items-center gap-2">
-                  {item.checked ? (
-                    <CheckCircle2 className="w-4 h-4 text-primary" />
-                  ) : (
-                    <XCircle className="w-4 h-4 text-muted-foreground" />
-                  )}
-                  <span className={item.checked ? 'text-foreground' : 'text-muted-foreground'}>
-                    {item.id.replace(/_/g, ' ')}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
-    </div>
   );
 }

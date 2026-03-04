@@ -1,14 +1,20 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, redirect, Outlet } from '@tanstack/react-router';
-import { LocalAuthProvider, useLocalAuth } from './hooks/useLocalAuth';
-import { useIsCallerAdmin } from './hooks/useQueries';
-import { Toaster } from '@/components/ui/sonner';
-import { ThemeProvider } from 'next-themes';
-import { useRef, useEffect } from 'react';
-import AppHeader from './components/header/AppHeader';
-import AdminDashboardLayout from './pages/admin/AdminDashboardLayout';
-import AllChecklistsPage from './pages/admin/AllChecklistsPage';
-import PublicChecklistPage from './pages/PublicChecklistPage';
-import AdminLoginPage from './pages/AdminLoginPage';
+import { Toaster } from "@/components/ui/sonner";
+import {
+  Outlet,
+  RouterProvider,
+  createRootRoute,
+  createRoute,
+  createRouter,
+  redirect,
+} from "@tanstack/react-router";
+import { ThemeProvider } from "next-themes";
+import { useRef } from "react";
+import AppHeader from "./components/header/AppHeader";
+import { LocalAuthProvider, useLocalAuth } from "./hooks/useLocalAuth";
+import AdminLoginPage, { isAdminSessionActive } from "./pages/AdminLoginPage";
+import PublicChecklistPage from "./pages/PublicChecklistPage";
+import AdminDashboardLayout from "./pages/admin/AdminDashboardLayout";
+import AllChecklistsPage from "./pages/admin/AllChecklistsPage";
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -28,32 +34,32 @@ function RootLayout() {
 // Public checklist route (no authentication required)
 const publicChecklistRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   component: PublicChecklistPage,
 });
 
 // Admin login route
 const adminLoginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin/login',
+  path: "/admin/login",
   component: AdminLoginPage,
 });
 
-// Admin routes (require authentication)
+// Admin routes (require password session)
 const adminRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/admin',
+  path: "/admin",
   component: AdminDashboardLayout,
-  beforeLoad: ({ context }: any) => {
-    if (!context.isAuthenticated || !context.isAdmin) {
-      throw redirect({ to: '/admin/login' });
+  beforeLoad: () => {
+    if (!isAdminSessionActive()) {
+      throw redirect({ to: "/admin/login" });
     }
   },
 });
 
 const adminChecklistsRoute = createRoute({
   getParentRoute: () => adminRoute,
-  path: '/checklists',
+  path: "/checklists",
   component: AllChecklistsPage,
 });
 
@@ -63,35 +69,14 @@ const routeTree = rootRoute.addChildren([
   adminRoute.addChildren([adminChecklistsRoute]),
 ]);
 
+const router = createRouter({
+  routeTree,
+  defaultPreload: "intent",
+});
+
 function AppContent() {
-  const { isAuthenticated, isInitializing } = useLocalAuth();
-  const { data: isAdmin, isLoading: adminLoading } = useIsCallerAdmin();
-
-  // Create router once and store in ref
-  const routerRef = useRef<ReturnType<typeof createRouter> | null>(null);
-
-  if (!routerRef.current) {
-    routerRef.current = createRouter({
-      routeTree,
-      context: {
-        isAuthenticated: false,
-        isAdmin: false,
-      },
-      defaultPreload: 'intent',
-    });
-  }
-
-  // Update router context when auth state changes without recreating the router
-  useEffect(() => {
-    if (routerRef.current) {
-      routerRef.current.update({
-        context: {
-          isAuthenticated,
-          isAdmin: isAdmin || false,
-        },
-      });
-    }
-  }, [isAuthenticated, isAdmin]);
+  const { isInitializing } = useLocalAuth();
+  const routerRef = useRef(router);
 
   if (isInitializing) {
     return (

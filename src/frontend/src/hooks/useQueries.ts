@@ -1,10 +1,20 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useLocalActor } from './useLocalActor';
-import type { UserProfile, LogEntry, UploadReference, Question, QuestionStatus, ChecklistConfig, SavedChecklist, PreTripChecklist } from '../backend';
-import { ExternalBlob } from '../backend';
-import { Principal } from '@dfinity/principal';
-import { toast } from 'sonner';
-import { isAuthorizationError, getAuthErrorMessage } from '../utils/authErrors';
+import type { Principal } from "@dfinity/principal";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type {
+  ChecklistConfig,
+  ChecklistSubmission,
+  LogEntry,
+  PreTripChecklist,
+  Question,
+  QuestionStatus,
+  SavedChecklist,
+  UploadReference,
+  UserProfile,
+} from "../backend";
+import type { ExternalBlob } from "../backend";
+import { getAuthErrorMessage, isAuthorizationError } from "../utils/authErrors";
+import { useLocalActor } from "./useLocalActor";
 
 // User Registration
 export function useRegisterUser() {
@@ -13,14 +23,14 @@ export function useRegisterUser() {
 
   return useMutation({
     mutationFn: async (displayName: string) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       return actor.registerUser(displayName);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['isCallerAdmin'] });
-      queryClient.invalidateQueries({ queryKey: ['registrationCheck'] });
-      toast.success('Registration successful');
+      queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
+      queryClient.invalidateQueries({ queryKey: ["isCallerAdmin"] });
+      queryClient.invalidateQueries({ queryKey: ["registrationCheck"] });
+      toast.success("Registration successful");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -33,9 +43,9 @@ export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   const query = useQuery<UserProfile | null>({
-    queryKey: ['currentUserProfile'],
+    queryKey: ["currentUserProfile"],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       try {
         return await actor.getCallerUserProfile();
       } catch (error) {
@@ -60,9 +70,9 @@ export function useGetUserProfile(user: Principal) {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<UserProfile | null>({
-    queryKey: ['userProfile', user.toString()],
+    queryKey: ["userProfile", user.toString()],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       try {
         return await actor.getUserProfile(user);
       } catch (error) {
@@ -83,12 +93,12 @@ export function useSaveCallerUserProfile() {
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       return actor.saveCallerUserProfile(profile);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      toast.success('Profile saved successfully');
+      queryClient.invalidateQueries({ queryKey: ["currentUserProfile"] });
+      toast.success("Profile saved successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -101,7 +111,7 @@ export function useIsCallerAdmin() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<boolean>({
-    queryKey: ['isCallerAdmin'],
+    queryKey: ["isCallerAdmin"],
     queryFn: async () => {
       if (!actor) return false;
       try {
@@ -122,7 +132,7 @@ export function useGetCallerLogEntries() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<LogEntry[]>({
-    queryKey: ['callerLogEntries'],
+    queryKey: ["callerLogEntries"],
     queryFn: async () => {
       if (!actor) return [];
       try {
@@ -142,7 +152,7 @@ export function useGetAllLogEntries() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, LogEntry[]][]>({
-    queryKey: ['allLogEntries'],
+    queryKey: ["allLogEntries"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllLogEntries();
@@ -156,14 +166,18 @@ export function useCreateLogEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ title, notes, mileage }: { title: string | null; notes: string; mileage: bigint | null }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      title,
+      notes,
+      mileage,
+    }: { title: string | null; notes: string; mileage: bigint | null }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.createLogEntry(title, notes, mileage);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['callerLogEntries'] });
-      queryClient.invalidateQueries({ queryKey: ['allLogEntries'] });
-      toast.success('Log entry created successfully');
+      queryClient.invalidateQueries({ queryKey: ["callerLogEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["allLogEntries"] });
+      toast.success("Log entry created successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -176,14 +190,24 @@ export function useUpdateLogEntry() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ logId, title, notes, mileage }: { logId: string; title: string | null; notes: string; mileage: bigint | null }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      logId,
+      title,
+      notes,
+      mileage,
+    }: {
+      logId: string;
+      title: string | null;
+      notes: string;
+      mileage: bigint | null;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.updateLogEntry(logId, title, notes, mileage);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['callerLogEntries'] });
-      queryClient.invalidateQueries({ queryKey: ['allLogEntries'] });
-      toast.success('Log entry updated successfully');
+      queryClient.invalidateQueries({ queryKey: ["callerLogEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["allLogEntries"] });
+      toast.success("Log entry updated successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -197,13 +221,13 @@ export function useDeleteLogEntry() {
 
   return useMutation({
     mutationFn: async (logId: string) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       return actor.deleteLogEntry(logId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['callerLogEntries'] });
-      queryClient.invalidateQueries({ queryKey: ['allLogEntries'] });
-      toast.success('Log entry deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ["callerLogEntries"] });
+      queryClient.invalidateQueries({ queryKey: ["allLogEntries"] });
+      toast.success("Log entry deleted successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -216,7 +240,7 @@ export function useGetCallerUploads() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<UploadReference[]>({
-    queryKey: ['callerUploads'],
+    queryKey: ["callerUploads"],
     queryFn: async () => {
       if (!actor) return [];
       try {
@@ -236,7 +260,7 @@ export function useGetAllUploads() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, UploadReference[]][]>({
-    queryKey: ['allUploads'],
+    queryKey: ["allUploads"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllUploads();
@@ -250,14 +274,24 @@ export function useUploadDocument() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ blob, name, contentType, size }: { blob: ExternalBlob; name: string; contentType: string; size: bigint }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      blob,
+      name,
+      contentType,
+      size,
+    }: {
+      blob: ExternalBlob;
+      name: string;
+      contentType: string;
+      size: bigint;
+    }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.uploadDocument(blob, name, contentType, size);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['callerUploads'] });
-      queryClient.invalidateQueries({ queryKey: ['allUploads'] });
-      toast.success('Document uploaded successfully');
+      queryClient.invalidateQueries({ queryKey: ["callerUploads"] });
+      queryClient.invalidateQueries({ queryKey: ["allUploads"] });
+      toast.success("Document uploaded successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -270,7 +304,7 @@ export function useGetCallerQuestions() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<Question[]>({
-    queryKey: ['callerQuestions'],
+    queryKey: ["callerQuestions"],
     queryFn: async () => {
       if (!actor) return [];
       try {
@@ -290,7 +324,7 @@ export function useGetAllQuestions() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<[Principal, Question[]][]>({
-    queryKey: ['allQuestions'],
+    queryKey: ["allQuestions"],
     queryFn: async () => {
       if (!actor) return [];
       return actor.getAllQuestions();
@@ -305,13 +339,13 @@ export function useSubmitQuestion() {
 
   return useMutation({
     mutationFn: async (questionText: string) => {
-      if (!actor) throw new Error('Actor not available');
+      if (!actor) throw new Error("Actor not available");
       return actor.submitQuestion(questionText);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['callerQuestions'] });
-      queryClient.invalidateQueries({ queryKey: ['allQuestions'] });
-      toast.success('Question submitted successfully');
+      queryClient.invalidateQueries({ queryKey: ["callerQuestions"] });
+      queryClient.invalidateQueries({ queryKey: ["allQuestions"] });
+      toast.success("Question submitted successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -324,13 +358,17 @@ export function useUpdateQuestionStatus() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ user, questionId, status }: { user: Principal; questionId: string; status: QuestionStatus }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      user,
+      questionId,
+      status,
+    }: { user: Principal; questionId: string; status: QuestionStatus }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.updateQuestionStatus(user, questionId, status);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allQuestions'] });
-      toast.success('Question status updated');
+      queryClient.invalidateQueries({ queryKey: ["allQuestions"] });
+      toast.success("Question status updated");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -343,13 +381,17 @@ export function useAnswerQuestion() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ user, questionId, reply }: { user: Principal; questionId: string; reply: string }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      user,
+      questionId,
+      reply,
+    }: { user: Principal; questionId: string; reply: string }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.answerQuestion(user, questionId, reply);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allQuestions'] });
-      toast.success('Answer submitted successfully');
+      queryClient.invalidateQueries({ queryKey: ["allQuestions"] });
+      toast.success("Reply sent successfully");
     },
     onError: (error: Error) => {
       toast.error(getAuthErrorMessage(error));
@@ -357,41 +399,17 @@ export function useAnswerQuestion() {
   });
 }
 
-// Checklist Queries - PUBLIC ACCESS (no authentication required)
+// Checklist Queries
 export function useGetChecklistConfig() {
-  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
+  const { actor, isFetching: actorFetching } = useLocalActor();
 
   return useQuery<ChecklistConfig>({
-    queryKey: ['checklistConfig'],
+    queryKey: ["checklistConfig"],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      try {
-        return await actor.getChecklistConfig();
-      } catch (error) {
-        if (isAuthorizationError(error as Error)) {
-          throw error;
-        }
-        throw error;
-      }
+      if (!actor) throw new Error("Actor not available");
+      return actor.getChecklistConfig();
     },
-    enabled: !!actor && !actorFetching && isActorReady,
-    retry: false,
-  });
-}
-
-// Public checklist submission (anonymous access)
-export function useSaveChecklistAnonymous() {
-  const { actor } = useLocalActor();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ driverName, signature, checked }: { driverName: string; signature: string; checked: [string, boolean][] }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.saveChecklist(driverName, signature, checked);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allSavedChecklists'] });
-    },
+    enabled: !!actor && !actorFetching,
   });
 }
 
@@ -399,7 +417,7 @@ export function useGetCompletedChecklists() {
   const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
 
   return useQuery<SavedChecklist[]>({
-    queryKey: ['completedChecklists'],
+    queryKey: ["completedChecklists"],
     queryFn: async () => {
       if (!actor) return [];
       try {
@@ -412,7 +430,6 @@ export function useGetCompletedChecklists() {
       }
     },
     enabled: !!actor && !actorFetching && isActorReady,
-    retry: false,
   });
 }
 
@@ -421,45 +438,16 @@ export function useGetChecklistByDate() {
 
   return useMutation({
     mutationFn: async (date: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return await actor.getChecklistByDate(date);
-    },
-  });
-}
-
-export function useGetTodayChecklist() {
-  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
-  const today = BigInt(Math.floor(Date.now() / 86400000) * 86400000 * 1000000);
-
-  return useQuery<SavedChecklist | null>({
-    queryKey: ['todayChecklist', today.toString()],
-    queryFn: async () => {
-      if (!actor) return null;
+      if (!actor) throw new Error("Actor not available");
       try {
-        return await actor.getChecklistByDate(today);
+        return await actor.getChecklistByDate(date);
       } catch (error) {
         if (isAuthorizationError(error as Error)) {
           throw error;
         }
-        return null;
+        throw error;
       }
     },
-    enabled: !!actor && !actorFetching && isActorReady,
-    retry: false,
-  });
-}
-
-// Admin-only: View all saved checklists
-export function useGetAllSavedChecklists() {
-  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
-
-  return useQuery<[Principal, SavedChecklist[]][]>({
-    queryKey: ['allSavedChecklists'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllSavedChecklists();
-    },
-    enabled: !!actor && !actorFetching && isActorReady,
   });
 }
 
@@ -468,31 +456,70 @@ export function useSaveChecklist() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ driverName, signature, checked }: { driverName: string; signature: string; checked: [string, boolean][] }) => {
-      if (!actor) throw new Error('Actor not available');
+    mutationFn: async ({
+      driverName,
+      signature,
+      checked,
+    }: {
+      driverName: string;
+      signature: string;
+      checked: [string, boolean][];
+    }) => {
+      if (!actor) throw new Error("Actor not available");
       return actor.saveChecklist(driverName, signature, checked);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['completedChecklists'] });
-      queryClient.invalidateQueries({ queryKey: ['todayChecklist'] });
-      queryClient.invalidateQueries({ queryKey: ['allSavedChecklists'] });
+      queryClient.invalidateQueries({ queryKey: ["completedChecklists"] });
+      queryClient.invalidateQueries({ queryKey: ["allChecklistSubmissions"] });
+      toast.success("Checklist saved successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(getAuthErrorMessage(error));
     },
   });
 }
 
-export function useSaveChecklistFull() {
+export function useSaveChecklistAnonymous() {
   const { actor } = useLocalActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (checklist: PreTripChecklist) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.saveChecklistFull(checklist);
+    mutationFn: async ({
+      driverName,
+      signature,
+      checked,
+    }: {
+      driverName: string;
+      signature: string;
+      checked: [string, boolean][];
+    }) => {
+      if (!actor) throw new Error("Actor not available");
+      return actor.saveChecklist(driverName, signature, checked);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['completedChecklists'] });
-      queryClient.invalidateQueries({ queryKey: ['todayChecklist'] });
-      queryClient.invalidateQueries({ queryKey: ['allSavedChecklists'] });
+      queryClient.invalidateQueries({ queryKey: ["allChecklistSubmissions"] });
+    },
+    onError: (error: Error) => {
+      throw error;
     },
   });
+}
+
+// Admin: Get all checklist submissions
+export function useGetAllChecklistSubmissions() {
+  const { actor, isFetching: actorFetching, isActorReady } = useLocalActor();
+
+  return useQuery<[Principal, ChecklistSubmission[]][]>({
+    queryKey: ["allChecklistSubmissions"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllChecklistSubmissions();
+    },
+    enabled: !!actor && !actorFetching && isActorReady,
+  });
+}
+
+// Legacy hook for backward compatibility
+export function useGetAllSavedChecklists() {
+  return useGetAllChecklistSubmissions();
 }

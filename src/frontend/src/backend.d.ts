@@ -35,6 +35,15 @@ export interface PreTripChecklist {
     timestamp: Time;
     driverName: string;
 }
+export interface ChecklistSubmission {
+    checked: Array<[string, boolean]>;
+    signature: string;
+    userId: Principal;
+    itemsCount: bigint;
+    timestamp: Time;
+    items: Array<ChecklistItem>;
+    driverName: string;
+}
 export interface ChecklistConfig {
     sections: Array<ChecklistSection>;
 }
@@ -86,9 +95,9 @@ export interface backendInterface {
     clearCheckpointHistory(): Promise<void>;
     createLogEntry(title: string | null, notes: string, mileage: bigint | null): Promise<string>;
     deleteLogEntry(logId: string): Promise<void>;
+    getAllChecklistSubmissions(): Promise<Array<[Principal, Array<ChecklistSubmission>]>>;
     getAllLogEntries(): Promise<Array<[Principal, Array<LogEntry>]>>;
     getAllQuestions(): Promise<Array<[Principal, Array<Question>]>>;
-    getAllSavedChecklists(): Promise<Array<[Principal, Array<SavedChecklist>]>>;
     getAllUploads(): Promise<Array<[Principal, Array<UploadReference>]>>;
     getCallerLogEntries(): Promise<Array<LogEntry>>;
     getCallerQuestions(): Promise<Array<Question>>;

@@ -98,6 +98,17 @@ actor {
     checked : [(Text, Bool)];
   };
 
+  // New type to store checklist with user data
+  public type ChecklistSubmission = {
+    signature : Text;
+    timestamp : Time.Time;
+    driverName : Text;
+    items : [ChecklistItem];
+    checked : [(Text, Bool)];
+    userId : Principal;
+    itemsCount : Nat;
+  };
+
   public type ChecklistConfig = { sections : [ChecklistSection] };
 
   public type Checklist = {
@@ -189,9 +200,9 @@ actor {
   };
 
   // ================= Checklist Feature Extension ==================
-  // ANONYMOUS ACCESS: Allow anyone (including guests) to get checklist config
+  // PUBLIC ACCESS: Allow anyone (including guests) to get checklist config (read-only)
   public query ({ caller }) func getChecklistConfig() : async ChecklistConfig {
-    // No authorization check - anonymous access allowed per implementation plan
+    // No authorization check - public read-only access to configuration
     {
       sections = getChecklistSections();
     };
@@ -313,9 +324,11 @@ actor {
 
   let savedChecklists = Map.empty<Principal, List.List<SavedChecklist>>();
 
-  // ANONYMOUS ACCESS: Allow anyone (including guests) to submit checklists
+  // REGISTERED USER ONLY: Submit checklists with user identity tracking
   public shared ({ caller }) func saveChecklist(driverName : Text, signature : Text, checked : [(Text, Bool)]) : async () {
-    // No authorization check - anonymous submissions allowed per implementation plan
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can submit checklists");
+    };
     let checklist : SavedChecklist = {
       items = getChecklistSections()[0].items;
       signature;
@@ -334,9 +347,11 @@ actor {
     savedChecklists.add(caller, filtered);
   };
 
-  // ANONYMOUS ACCESS: Allow anyone (including guests) to submit checklists
+  // REGISTERED USER ONLY: Submit checklists with user identity tracking
   public shared ({ caller }) func saveChecklistFull(checklist : PreTripChecklist) : async () {
-    // No authorization check - anonymous submissions allowed per implementation plan
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can submit checklists");
+    };
     
     // SECURITY: Always use the authenticated caller as driverId
     // Never trust client-provided driverId to prevent impersonation
@@ -364,18 +379,49 @@ actor {
     time - (time % 86400000000000);
   };
 
-  // USER ACCESS: Users can view their own completed checklists
+  // ADMIN ONLY: View all saved checklists from all users with user info
+  public query ({ caller }) func getAllChecklistSubmissions() : async [(Principal, [ChecklistSubmission])] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all saved checklists");
+    };
+
+    let entries = Map.empty<Principal, [ChecklistSubmission]>();
+
+    for ((principal, checklists) in savedChecklists.entries()) {
+      let submissions = checklists.toArray().map(
+        func(savedChecklist) {
+          {
+            signature = savedChecklist.signature;
+            timestamp = savedChecklist.timestamp;
+            driverName = savedChecklist.driverName;
+            items = savedChecklist.items;
+            checked = savedChecklist.checked;
+            userId = principal;
+            itemsCount = savedChecklist.items.size();
+          };
+        }
+      );
+      entries.add(principal, submissions);
+    };
+    entries.toArray();
+  };
+
+  // REGISTERED USER ONLY: View own completed checklists
   public query ({ caller }) func getCompletedChecklists() : async [SavedChecklist] {
-    // Users can view their own checklists (including anonymous principals viewing their own)
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can view checklists");
+    };
     switch (savedChecklists.get(caller)) {
       case (null) { [] };
       case (?checklists) { checklists.toArray() };
     };
   };
 
-  // USER ACCESS: Users can view their own checklist by date
+  // REGISTERED USER ONLY: View own checklist by date
   public query ({ caller }) func getChecklistByDate(date : Time.Time) : async ?SavedChecklist {
-    // Users can view their own checklists (including anonymous principals viewing their own)
+    if (not isRegisteredUser(caller)) {
+      Runtime.trap("Unauthorized: Only registered users can view checklists");
+    };
     switch (savedChecklists.get(caller)) {
       case (null) { null };
       case (?checklists) {
@@ -385,19 +431,6 @@ actor {
         );
       };
     };
-  };
-
-  // ADMIN ONLY: View all saved checklists from all users
-  public query ({ caller }) func getAllSavedChecklists() : async [(Principal, [SavedChecklist])] {
-    if (not (AccessControl.isAdmin(accessControlState, caller))) {
-      Runtime.trap("Unauthorized: Only admins can view all saved checklists");
-    };
-
-    let entries = Map.empty<Principal, [SavedChecklist]>();
-    for ((principal, checklists) in savedChecklists.entries()) {
-      entries.add(principal, checklists.toArray());
-    };
-    entries.toArray();
   };
 
   // ADMIN ONLY: Clear checkpoint history

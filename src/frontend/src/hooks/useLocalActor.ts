@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { backendInterface } from '../backend';
-import { createActorWithConfig } from '../config';
-import { useLocalAuth } from './useLocalAuth';
-import { getSecretParameter } from '../utils/urlParams';
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import type { backendInterface } from "../backend";
+import { createActorWithConfig } from "../config";
+import { getSecretParameter } from "../utils/urlParams";
+import { useLocalAuth } from "./useLocalAuth";
 
-const ACTOR_QUERY_KEY = 'local-actor';
+const ACTOR_QUERY_KEY = "local-actor";
 
 export function useLocalActor() {
   const { identity, isAuthenticated } = useLocalAuth();
@@ -29,12 +29,12 @@ export function useLocalActor() {
       };
 
       const actor = await createActorWithConfig(actorOptions);
-      const adminToken = getSecretParameter('caffeineAdminToken') || '';
+      const adminToken = getSecretParameter("caffeineAdminToken") || "";
       await actor._initializeAccessControlWithSecret(adminToken);
       setIsActorReady(true); // Authenticated actor is ready
       return actor;
     },
-    staleTime: Infinity,
+    staleTime: Number.POSITIVE_INFINITY,
     enabled: true,
   });
 

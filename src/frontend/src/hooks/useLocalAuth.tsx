@@ -1,6 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Ed25519KeyIdentity } from '@dfinity/identity';
-import { Principal } from '@dfinity/principal';
+import { Ed25519KeyIdentity } from "@dfinity/identity";
+import { Principal } from "@dfinity/principal";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
 
 interface LocalAuthContextType {
   identity: Ed25519KeyIdentity | null;
@@ -11,10 +17,12 @@ interface LocalAuthContextType {
   logout: () => void;
 }
 
-const LocalAuthContext = createContext<LocalAuthContextType | undefined>(undefined);
+const LocalAuthContext = createContext<LocalAuthContextType | undefined>(
+  undefined,
+);
 
-const LOCAL_IDENTITY_KEY = 'local_identity';
-const LOCAL_NAME_KEY = 'local_display_name';
+const LOCAL_IDENTITY_KEY = "local_identity";
+const LOCAL_NAME_KEY = "local_display_name";
 
 export function LocalAuthProvider({ children }: { children: ReactNode }) {
   const [identity, setIdentity] = useState<Ed25519KeyIdentity | null>(null);
@@ -35,7 +43,7 @@ export function LocalAuthProvider({ children }: { children: ReactNode }) {
           setDisplayName(storedName);
         }
       } catch (error) {
-        console.error('Failed to restore identity:', error);
+        console.error("Failed to restore identity:", error);
         localStorage.removeItem(LOCAL_IDENTITY_KEY);
         localStorage.removeItem(LOCAL_NAME_KEY);
       } finally {
@@ -48,12 +56,12 @@ export function LocalAuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (name: string) => {
     if (!name.trim()) {
-      throw new Error('Display name is required');
+      throw new Error("Display name is required");
     }
 
     // Generate a new identity
     const newIdentity = Ed25519KeyIdentity.generate();
-    
+
     // Persist to localStorage
     const identityJSON = newIdentity.toJSON();
     localStorage.setItem(LOCAL_IDENTITY_KEY, JSON.stringify(identityJSON));
@@ -89,7 +97,7 @@ export function LocalAuthProvider({ children }: { children: ReactNode }) {
 export function useLocalAuth() {
   const context = useContext(LocalAuthContext);
   if (!context) {
-    throw new Error('useLocalAuth must be used within LocalAuthProvider');
+    throw new Error("useLocalAuth must be used within LocalAuthProvider");
   }
   return context;
 }

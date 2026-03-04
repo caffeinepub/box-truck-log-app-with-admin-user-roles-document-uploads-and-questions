@@ -25,6 +25,21 @@ export const UserRole = IDL.Variant({
   'guest' : IDL.Null,
 });
 export const Time = IDL.Int;
+export const ChecklistItem = IDL.Record({
+  'id' : IDL.Text,
+  'defaultChecked' : IDL.Bool,
+  'name' : IDL.Text,
+  'prompt' : IDL.Text,
+});
+export const ChecklistSubmission = IDL.Record({
+  'checked' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Bool)),
+  'signature' : IDL.Text,
+  'userId' : IDL.Principal,
+  'itemsCount' : IDL.Nat,
+  'timestamp' : Time,
+  'items' : IDL.Vec(ChecklistItem),
+  'driverName' : IDL.Text,
+});
 export const LogEntry = IDL.Record({
   'id' : IDL.Text,
   'title' : IDL.Opt(IDL.Text),
@@ -45,20 +60,6 @@ export const Question = IDL.Record({
   'questionText' : IDL.Text,
   'timestamp' : Time,
 });
-export const ChecklistItem = IDL.Record({
-  'id' : IDL.Text,
-  'defaultChecked' : IDL.Bool,
-  'name' : IDL.Text,
-  'prompt' : IDL.Text,
-});
-export const SavedChecklist = IDL.Record({
-  'driverId' : IDL.Principal,
-  'checked' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Bool)),
-  'signature' : IDL.Text,
-  'timestamp' : Time,
-  'items' : IDL.Vec(ChecklistItem),
-  'driverName' : IDL.Text,
-});
 export const ExternalBlob = IDL.Vec(IDL.Nat8);
 export const UploadReference = IDL.Record({
   'id' : IDL.Text,
@@ -70,6 +71,14 @@ export const UploadReference = IDL.Record({
   'timestamp' : Time,
 });
 export const UserProfile = IDL.Record({ 'name' : IDL.Text });
+export const SavedChecklist = IDL.Record({
+  'driverId' : IDL.Principal,
+  'checked' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Bool)),
+  'signature' : IDL.Text,
+  'timestamp' : Time,
+  'items' : IDL.Vec(ChecklistItem),
+  'driverName' : IDL.Text,
+});
 export const ChecklistSection = IDL.Record({
   'title' : IDL.Text,
   'items' : IDL.Vec(ChecklistItem),
@@ -122,6 +131,11 @@ export const idlService = IDL.Service({
       [],
     ),
   'deleteLogEntry' : IDL.Func([IDL.Text], [], []),
+  'getAllChecklistSubmissions' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(ChecklistSubmission)))],
+      ['query'],
+    ),
   'getAllLogEntries' : IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(LogEntry)))],
@@ -130,11 +144,6 @@ export const idlService = IDL.Service({
   'getAllQuestions' : IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(Question)))],
-      ['query'],
-    ),
-  'getAllSavedChecklists' : IDL.Func(
-      [],
-      [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(SavedChecklist)))],
       ['query'],
     ),
   'getAllUploads' : IDL.Func(
@@ -218,6 +227,21 @@ export const idlFactory = ({ IDL }) => {
     'guest' : IDL.Null,
   });
   const Time = IDL.Int;
+  const ChecklistItem = IDL.Record({
+    'id' : IDL.Text,
+    'defaultChecked' : IDL.Bool,
+    'name' : IDL.Text,
+    'prompt' : IDL.Text,
+  });
+  const ChecklistSubmission = IDL.Record({
+    'checked' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Bool)),
+    'signature' : IDL.Text,
+    'userId' : IDL.Principal,
+    'itemsCount' : IDL.Nat,
+    'timestamp' : Time,
+    'items' : IDL.Vec(ChecklistItem),
+    'driverName' : IDL.Text,
+  });
   const LogEntry = IDL.Record({
     'id' : IDL.Text,
     'title' : IDL.Opt(IDL.Text),
@@ -238,20 +262,6 @@ export const idlFactory = ({ IDL }) => {
     'questionText' : IDL.Text,
     'timestamp' : Time,
   });
-  const ChecklistItem = IDL.Record({
-    'id' : IDL.Text,
-    'defaultChecked' : IDL.Bool,
-    'name' : IDL.Text,
-    'prompt' : IDL.Text,
-  });
-  const SavedChecklist = IDL.Record({
-    'driverId' : IDL.Principal,
-    'checked' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Bool)),
-    'signature' : IDL.Text,
-    'timestamp' : Time,
-    'items' : IDL.Vec(ChecklistItem),
-    'driverName' : IDL.Text,
-  });
   const ExternalBlob = IDL.Vec(IDL.Nat8);
   const UploadReference = IDL.Record({
     'id' : IDL.Text,
@@ -263,6 +273,14 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : Time,
   });
   const UserProfile = IDL.Record({ 'name' : IDL.Text });
+  const SavedChecklist = IDL.Record({
+    'driverId' : IDL.Principal,
+    'checked' : IDL.Vec(IDL.Tuple(IDL.Text, IDL.Bool)),
+    'signature' : IDL.Text,
+    'timestamp' : Time,
+    'items' : IDL.Vec(ChecklistItem),
+    'driverName' : IDL.Text,
+  });
   const ChecklistSection = IDL.Record({
     'title' : IDL.Text,
     'items' : IDL.Vec(ChecklistItem),
@@ -315,6 +333,11 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'deleteLogEntry' : IDL.Func([IDL.Text], [], []),
+    'getAllChecklistSubmissions' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(ChecklistSubmission)))],
+        ['query'],
+      ),
     'getAllLogEntries' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(LogEntry)))],
@@ -323,11 +346,6 @@ export const idlFactory = ({ IDL }) => {
     'getAllQuestions' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(Question)))],
-        ['query'],
-      ),
-    'getAllSavedChecklists' : IDL.Func(
-        [],
-        [IDL.Vec(IDL.Tuple(IDL.Principal, IDL.Vec(SavedChecklist)))],
         ['query'],
       ),
     'getAllUploads' : IDL.Func(

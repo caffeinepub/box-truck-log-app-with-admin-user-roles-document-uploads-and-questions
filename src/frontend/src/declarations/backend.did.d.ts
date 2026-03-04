@@ -21,6 +21,15 @@ export interface ChecklistSection {
   'title' : string,
   'items' : Array<ChecklistItem>,
 }
+export interface ChecklistSubmission {
+  'checked' : Array<[string, boolean]>,
+  'signature' : string,
+  'userId' : Principal,
+  'itemsCount' : bigint,
+  'timestamp' : Time,
+  'items' : Array<ChecklistItem>,
+  'driverName' : string,
+}
 export type ExternalBlob = Uint8Array;
 export interface LogEntry {
   'id' : string,
@@ -105,12 +114,12 @@ export interface _SERVICE {
     string
   >,
   'deleteLogEntry' : ActorMethod<[string], undefined>,
+  'getAllChecklistSubmissions' : ActorMethod<
+    [],
+    Array<[Principal, Array<ChecklistSubmission>]>
+  >,
   'getAllLogEntries' : ActorMethod<[], Array<[Principal, Array<LogEntry>]>>,
   'getAllQuestions' : ActorMethod<[], Array<[Principal, Array<Question>]>>,
-  'getAllSavedChecklists' : ActorMethod<
-    [],
-    Array<[Principal, Array<SavedChecklist>]>
-  >,
   'getAllUploads' : ActorMethod<[], Array<[Principal, Array<UploadReference>]>>,
   'getCallerLogEntries' : ActorMethod<[], Array<LogEntry>>,
   'getCallerQuestions' : ActorMethod<[], Array<Question>>,

@@ -117,6 +117,15 @@ export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
 }
+export interface ChecklistSubmission {
+    checked: Array<[string, boolean]>;
+    signature: string;
+    userId: Principal;
+    itemsCount: bigint;
+    timestamp: Time;
+    items: Array<ChecklistItem>;
+    driverName: string;
+}
 export interface ChecklistConfig {
     sections: Array<ChecklistSection>;
 }
@@ -179,9 +188,9 @@ export interface backendInterface {
     clearCheckpointHistory(): Promise<void>;
     createLogEntry(title: string | null, notes: string, mileage: bigint | null): Promise<string>;
     deleteLogEntry(logId: string): Promise<void>;
+    getAllChecklistSubmissions(): Promise<Array<[Principal, Array<ChecklistSubmission>]>>;
     getAllLogEntries(): Promise<Array<[Principal, Array<LogEntry>]>>;
     getAllQuestions(): Promise<Array<[Principal, Array<Question>]>>;
-    getAllSavedChecklists(): Promise<Array<[Principal, Array<SavedChecklist>]>>;
     getAllUploads(): Promise<Array<[Principal, Array<UploadReference>]>>;
     getCallerLogEntries(): Promise<Array<LogEntry>>;
     getCallerQuestions(): Promise<Array<Question>>;
@@ -377,6 +386,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllChecklistSubmissions(): Promise<Array<[Principal, Array<ChecklistSubmission>]>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllChecklistSubmissions();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllChecklistSubmissions();
+            return result;
+        }
+    }
     async getAllLogEntries(): Promise<Array<[Principal, Array<LogEntry>]>> {
         if (this.processError) {
             try {
@@ -403,20 +426,6 @@ export class Backend implements backendInterface {
         } else {
             const result = await this.actor.getAllQuestions();
             return from_candid_vec_n19(this._uploadFile, this._downloadFile, result);
-        }
-    }
-    async getAllSavedChecklists(): Promise<Array<[Principal, Array<SavedChecklist>]>> {
-        if (this.processError) {
-            try {
-                const result = await this.actor.getAllSavedChecklists();
-                return result;
-            } catch (e) {
-                this.processError(e);
-                throw new Error("unreachable");
-            }
-        } else {
-            const result = await this.actor.getAllSavedChecklists();
-            return result;
         }
     }
     async getAllUploads(): Promise<Array<[Principal, Array<UploadReference>]>> {
