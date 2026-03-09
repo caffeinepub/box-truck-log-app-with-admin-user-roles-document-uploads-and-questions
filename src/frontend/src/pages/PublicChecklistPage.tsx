@@ -29,6 +29,7 @@ export interface ChecklistSubmissionRecord {
   id: string;
   driverName: string;
   signature: string;
+  role: "Driver" | "Helper";
   sections: ChecklistSection[];
   timestamp: number;
   totalItems: number;
@@ -280,6 +281,19 @@ const CHECKLIST_SECTIONS: ChecklistSection[] = [
   },
 ];
 
+// Rotating colored left-border per section
+const SECTION_BORDER_COLORS = [
+  "border-l-accent",
+  "border-l-primary",
+  "border-l-chart-3",
+  "border-l-chart-4",
+  "border-l-chart-5",
+  "border-l-accent",
+  "border-l-primary",
+  "border-l-chart-3",
+  "border-l-chart-4",
+];
+
 const PROGRESS_KEY = "berks_bus_checklist_progress";
 export const SUBMISSIONS_KEY = "berks_bus_checklist_submissions";
 
@@ -295,7 +309,7 @@ export function getStoredSubmissions(): ChecklistSubmissionRecord[] {
 
 function saveSubmission(record: ChecklistSubmissionRecord): void {
   const existing = getStoredSubmissions();
-  existing.unshift(record); // newest first
+  existing.unshift(record);
   localStorage.setItem(SUBMISSIONS_KEY, JSON.stringify(existing));
 }
 
@@ -304,6 +318,7 @@ export default function PublicChecklistPage() {
     useState<ChecklistSection[]>(CHECKLIST_SECTIONS);
   const [driverName, setDriverName] = useState("");
   const [signature, setSignature] = useState("");
+  const [role, setRole] = useState<"Driver" | "Helper" | "">("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -316,6 +331,7 @@ export default function PublicChecklistPage() {
         if (data.sections) setSections(data.sections);
         if (data.driverName) setDriverName(data.driverName);
         if (data.signature) setSignature(data.signature);
+        if (data.role) setRole(data.role);
       } catch {
         // ignore
       }
@@ -327,14 +343,14 @@ export default function PublicChecklistPage() {
     if (!submitted) {
       localStorage.setItem(
         PROGRESS_KEY,
-        JSON.stringify({ sections, driverName, signature }),
+        JSON.stringify({ sections, driverName, signature, role }),
       );
     }
-  }, [sections, driverName, signature, submitted]);
+  }, [sections, driverName, signature, role, submitted]);
 
   const handleCheckboxChange = (sectionIndex: number, itemIndex: number) => {
-    setSections((prev) => {
-      const next = prev.map((s, si) =>
+    setSections((prev) =>
+      prev.map((s, si) =>
         si === sectionIndex
           ? {
               ...s,
@@ -343,9 +359,8 @@ export default function PublicChecklistPage() {
               ),
             }
           : s,
-      );
-      return next;
-    });
+      ),
+    );
   };
 
   const handleCheckAll = (sectionIndex: number) => {
@@ -360,8 +375,8 @@ export default function PublicChecklistPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!driverName.trim() || !signature.trim()) {
-      toast.error("Please fill in all required fields");
+    if (!driverName.trim() || !signature.trim() || !role) {
+      toast.error("Please fill in all required fields including your role");
       return;
     }
 
@@ -377,6 +392,7 @@ export default function PublicChecklistPage() {
         id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         driverName: driverName.trim(),
         signature: signature.trim(),
+        role: role as "Driver" | "Helper",
         sections,
         timestamp: Date.now(),
         totalItems,
@@ -398,6 +414,7 @@ export default function PublicChecklistPage() {
     setSections(CHECKLIST_SECTIONS);
     setDriverName("");
     setSignature("");
+    setRole("");
     setSubmitted(false);
     localStorage.removeItem(PROGRESS_KEY);
   };
@@ -412,21 +429,32 @@ export default function PublicChecklistPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
-        <Card className="max-w-md w-full border-2">
-          <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-primary" />
+      <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gradient-to-br from-background to-secondary/30 p-4">
+        <Card className="max-w-md w-full border-2 border-accent/30 shadow-xl">
+          <CardHeader className="text-center pb-4">
+            <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-gradient-to-br from-accent to-chart-3 flex items-center justify-center shadow-lg shadow-accent/30">
+              <CheckCircle2 className="w-11 h-11 text-white" />
             </div>
-            <CardTitle className="text-2xl">Checklist Submitted!</CardTitle>
-            <CardDescription>
+            <CardTitle className="font-display text-2xl font-bold">
+              Checklist Submitted!
+            </CardTitle>
+            <CardDescription className="text-base">
               Your pre-trip inspection has been recorded successfully.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="text-center space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Driver: {driverName}
+            <div className="rounded-xl bg-secondary/50 p-4 space-y-2 text-center">
+              <p className="text-sm font-semibold text-foreground">
+                Driver:{" "}
+                <span className="text-accent font-bold">{driverName}</span>
+              </p>
+              <p className="text-sm text-foreground">
+                Role:{" "}
+                <span
+                  className={`font-bold ${role === "Driver" ? "text-accent" : "text-primary"}`}
+                >
+                  {role}
+                </span>
               </p>
               <p className="text-sm text-muted-foreground">
                 Completed: {new Date().toLocaleDateString()} at{" "}
@@ -435,7 +463,7 @@ export default function PublicChecklistPage() {
             </div>
             <Button
               onClick={handleStartNew}
-              className="w-full"
+              className="w-full bg-gradient-to-r from-accent to-chart-3 text-accent-foreground font-bold hover:opacity-90 shadow-md shadow-accent/25"
               data-ocid="checklist.primary_button"
             >
               Start New Checklist
@@ -447,51 +475,62 @@ export default function PublicChecklistPage() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-muted/20">
-      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-8">
-        {/* Header */}
+    <div className="min-h-[calc(100vh-80px)] bg-gradient-to-br from-background via-background to-secondary/30">
+      <div className="container max-w-4xl mx-auto py-8 px-4 space-y-6">
+        {/* Hero Header */}
         <div className="text-center space-y-4">
-          <div className="flex items-center justify-center gap-3">
-            <Truck className="w-12 h-12 text-primary" />
-            <h1 className="text-4xl font-bold tracking-tight">
-              Pre-Trip Checklist
-            </h1>
+          <div className="flex items-center justify-center gap-4">
+            <div className="hidden sm:flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/30">
+              <Truck className="w-9 h-9 text-accent" />
+            </div>
+            <div>
+              <h1 className="font-display text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
+                Pre-Trip Checklist
+              </h1>
+              <p className="text-sm sm:text-base text-muted-foreground font-medium mt-1">
+                28-ft Box Truck Inspection — Berks Bus Service
+              </p>
+            </div>
           </div>
-          <p className="text-xl text-muted-foreground">
-            28-ft Box Truck Inspection — Berks Bus Service
-          </p>
 
           {/* Progress Bar */}
-          <div className="max-w-md mx-auto space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Progress</span>
-              <span>{progress}% Complete</span>
+          <div className="max-w-lg mx-auto space-y-2">
+            <div className="flex justify-between text-sm font-semibold">
+              <span className="text-muted-foreground">Progress</span>
+              <span className="text-accent font-bold">
+                {progress}% Complete
+              </span>
             </div>
-            <div className="h-3 bg-muted rounded-full overflow-hidden">
+            <div className="h-4 bg-muted rounded-full overflow-hidden shadow-inner">
               <div
-                className="h-full bg-primary transition-all duration-300"
+                className="h-full bg-gradient-to-r from-accent to-chart-5 transition-all duration-500 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               {checkedCount} of {totalItems} items checked
             </p>
           </div>
         </div>
 
         {/* Checklist Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {/* Driver Information */}
-          <Card className="border-2">
-            <CardHeader>
-              <CardTitle>Driver Information</CardTitle>
+          <Card className="border-2 border-primary/20 border-l-4 border-l-primary shadow-md">
+            <CardHeader className="pb-3">
+              <CardTitle className="font-display font-bold text-lg flex items-center gap-2">
+                <span className="text-2xl">👤</span>
+                Driver Information
+              </CardTitle>
               <CardDescription>
                 Enter your details before starting the inspection
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="driverName">Driver Name *</Label>
+                <Label htmlFor="driverName" className="font-semibold">
+                  Driver Name *
+                </Label>
                 <Input
                   id="driverName"
                   type="text"
@@ -499,11 +538,14 @@ export default function PublicChecklistPage() {
                   value={driverName}
                   onChange={(e) => setDriverName(e.target.value)}
                   required
+                  className="border-2 focus:border-accent"
                   data-ocid="checklist.input"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signature">Signature *</Label>
+                <Label htmlFor="signature" className="font-semibold">
+                  Signature *
+                </Label>
                 <Input
                   id="signature"
                   type="text"
@@ -511,92 +553,160 @@ export default function PublicChecklistPage() {
                   value={signature}
                   onChange={(e) => setSignature(e.target.value)}
                   required
+                  className="border-2 focus:border-accent"
                   data-ocid="checklist.textarea"
                 />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-semibold">Role *</Label>
+                <fieldset
+                  className="flex gap-3 border-none p-0 m-0"
+                  aria-label="Select role"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setRole("Driver")}
+                    className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
+                      role === "Driver"
+                        ? "border-accent bg-accent text-accent-foreground shadow-md shadow-accent/25"
+                        : "border-border bg-background text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                    }`}
+                    data-ocid="checklist.radio"
+                  >
+                    🚛 Driver
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRole("Helper")}
+                    className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
+                      role === "Helper"
+                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                    }`}
+                    data-ocid="checklist.toggle"
+                  >
+                    🤝 Helper
+                  </button>
+                </fieldset>
+                {!role && (
+                  <p className="text-xs text-muted-foreground">
+                    Please select your role before submitting
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
 
           {/* Checklist Sections */}
-          {sections.map((section, sectionIndex) => (
-            <Card
-              key={section.title}
-              className="border-2"
-              data-ocid={`checklist.panel.${sectionIndex + 1}`}
-            >
-              <CardHeader>
-                <div className="flex items-center justify-between gap-4">
-                  <CardTitle className="flex items-center gap-2">
-                    <span className="text-2xl">{section.emoji}</span>
-                    <span>{section.title}</span>
-                  </CardTitle>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleCheckAll(sectionIndex)}
-                    className="shrink-0"
-                    data-ocid={`checklist.secondary_button.${sectionIndex + 1}`}
-                  >
-                    <CheckCheck className="w-4 h-4 mr-2" />
-                    Check All
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {section.items.map((item, itemIndex) => (
-                    <div
-                      key={item.id}
-                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors"
-                    >
-                      <Checkbox
-                        id={`${sectionIndex}-${itemIndex}`}
-                        checked={item.checked}
-                        onCheckedChange={() =>
-                          handleCheckboxChange(sectionIndex, itemIndex)
-                        }
-                        className="mt-0.5 h-6 w-6"
-                        data-ocid={`checklist.checkbox.${sectionIndex + 1}`}
-                      />
-                      <label
-                        htmlFor={`${sectionIndex}-${itemIndex}`}
-                        className="flex-1 text-sm font-medium leading-relaxed cursor-pointer select-none"
-                      >
-                        {item.label}
-                      </label>
+          {sections.map((section, sectionIndex) => {
+            const borderColor =
+              SECTION_BORDER_COLORS[
+                sectionIndex % SECTION_BORDER_COLORS.length
+              ];
+            const sectionCheckedCount = section.items.filter(
+              (it) => it.checked,
+            ).length;
+            const sectionTotal = section.items.length;
+            const allChecked = sectionCheckedCount === sectionTotal;
+
+            return (
+              <Card
+                key={section.title}
+                className={`border-2 border-l-4 ${borderColor} shadow-md transition-all duration-200 ${allChecked ? "bg-secondary/30" : ""}`}
+                data-ocid={`checklist.panel.${sectionIndex + 1}`}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-2xl shrink-0">{section.emoji}</span>
+                      <div>
+                        <CardTitle className="font-display font-bold text-base sm:text-lg leading-tight">
+                          {section.title}
+                        </CardTitle>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {sectionCheckedCount}/{sectionTotal} checked
+                        </p>
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleCheckAll(sectionIndex)}
+                      className="shrink-0 bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm font-semibold"
+                      data-ocid={`checklist.secondary_button.${sectionIndex + 1}`}
+                    >
+                      <CheckCheck className="w-4 h-4 mr-1.5" />
+                      Check All
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-1">
+                    {section.items.map((item, itemIndex) => (
+                      <div
+                        key={item.id}
+                        className={`flex items-start gap-3 p-3 rounded-lg transition-all duration-150 ${
+                          item.checked ? "bg-accent/8" : "hover:bg-muted/60"
+                        }`}
+                      >
+                        <Checkbox
+                          id={`${sectionIndex}-${itemIndex}`}
+                          checked={item.checked}
+                          onCheckedChange={() =>
+                            handleCheckboxChange(sectionIndex, itemIndex)
+                          }
+                          className="mt-0.5 h-5 w-5 shrink-0 border-2 data-[state=checked]:border-accent data-[state=checked]:bg-accent"
+                          data-ocid={`checklist.checkbox.${sectionIndex + 1}`}
+                        />
+                        <label
+                          htmlFor={`${sectionIndex}-${itemIndex}`}
+                          className={`flex-1 text-sm font-medium leading-relaxed cursor-pointer select-none transition-colors ${
+                            item.checked
+                              ? "line-through text-muted-foreground"
+                              : "text-foreground"
+                          }`}
+                        >
+                          {item.label}
+                        </label>
+                        {item.checked && (
+                          <CheckCircle2 className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
 
           {/* Submit Button */}
-          <Card className="border-2 border-primary/20 bg-primary/5">
-            <CardContent className="pt-6">
+          <Card className="border-2 border-accent/30 bg-gradient-to-br from-secondary/40 to-background shadow-lg">
+            <CardContent className="pt-6 pb-6">
               <Button
                 type="submit"
                 size="lg"
-                className="w-full text-lg"
+                className="w-full text-lg font-bold bg-gradient-to-r from-accent to-chart-5 text-white hover:opacity-92 shadow-lg shadow-accent/30 py-6"
                 disabled={
-                  isSubmitting || !driverName.trim() || !signature.trim()
+                  isSubmitting ||
+                  !driverName.trim() ||
+                  !signature.trim() ||
+                  !role
                 }
                 data-ocid="checklist.submit_button"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
                     Submitting...
                   </>
                 ) : (
                   <>
-                    <ClipboardCheck className="w-5 h-5 mr-2" />
-                    Submit Checklist
+                    <ClipboardCheck className="w-6 h-6 mr-2" />
+                    Submit Pre-Trip Checklist
                   </>
                 )}
               </Button>
-              <p className="text-sm text-muted-foreground text-center mt-4">
+              <p className="text-sm text-muted-foreground text-center mt-3 font-medium">
                 Your progress is automatically saved as you work
               </p>
             </CardContent>
@@ -604,7 +714,10 @@ export default function PublicChecklistPage() {
         </form>
 
         {/* Footer */}
-        <footer className="text-center text-sm text-muted-foreground space-y-2 pt-8 pb-4">
+        <footer className="text-center text-sm text-muted-foreground space-y-1 pt-4 pb-4">
+          <p>
+            © {new Date().getFullYear()} Berks Bus Service. All rights reserved.
+          </p>
           <p>
             Built with ❤️ using{" "}
             <a
@@ -613,13 +726,10 @@ export default function PublicChecklistPage() {
               )}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
+              className="underline hover:text-accent transition-colors font-medium"
             >
               caffeine.ai
             </a>
-          </p>
-          <p>
-            © {new Date().getFullYear()} Berks Bus Service. All rights reserved.
           </p>
         </footer>
       </div>

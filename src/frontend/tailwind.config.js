@@ -15,6 +15,10 @@ export default {
             }
         },
         extend: {
+            fontFamily: {
+                display: ['Bricolage Grotesque', 'sans-serif'],
+                sans: ['Bricolage Grotesque', 'sans-serif'],
+            },
             colors: {
                 border: 'oklch(var(--border))',
                 input: 'oklch(var(--input))',
@@ -55,6 +59,16 @@ export default {
                     3: 'oklch(var(--chart-3))',
                     4: 'oklch(var(--chart-4))',
                     5: 'oklch(var(--chart-5))'
+                },
+                sidebar: {
+                    DEFAULT: 'oklch(var(--sidebar-background))',
+                    foreground: 'oklch(var(--sidebar-foreground))',
+                    primary: 'oklch(var(--sidebar-primary))',
+                    'primary-foreground': 'oklch(var(--sidebar-primary-foreground))',
+                    accent: 'oklch(var(--sidebar-accent))',
+                    'accent-foreground': 'oklch(var(--sidebar-accent-foreground))',
+                    border: 'oklch(var(--sidebar-border))',
+                    ring: 'oklch(var(--sidebar-ring))'
                 }
             },
             borderRadius: {

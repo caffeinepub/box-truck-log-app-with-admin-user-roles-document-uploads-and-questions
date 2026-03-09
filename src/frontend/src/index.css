@@ -2,79 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
+@font-face {
+  font-family: "Bricolage Grotesque";
+  src: url("/assets/fonts/BricolageGrotesque[opsz,wdth,wght].woff2")
+    format("woff2");
+  font-display: swap;
+}
+
 @layer base {
   :root {
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    /* Light mode - Charcoal/Graphite + Safety Orange theme */
-    --background: 0.98 0 0;
-    --foreground: 0.2 0 0;
+    /* Light mode — Deep Navy + Vivid Orange palette */
+    --background: 0.98 0.005 250;
+    --foreground: 0.15 0.02 250;
     --card: 1 0 0;
-    --card-foreground: 0.2 0 0;
+    --card-foreground: 0.15 0.02 250;
     --popover: 1 0 0;
-    --popover-foreground: 0.2 0 0;
+    --popover-foreground: 0.15 0.02 250;
 
-    /* Primary: Safety Orange */
-    --primary: 0.65 0.2 35;
+    /* Primary: Deep Navy */
+    --primary: 0.28 0.08 250;
     --primary-foreground: 0.98 0 0;
 
-    /* Secondary: Charcoal */
-    --secondary: 0.35 0.01 260;
-    --secondary-foreground: 0.98 0 0;
+    /* Secondary: Warm Light Amber */
+    --secondary: 0.94 0.025 80;
+    --secondary-foreground: 0.2 0.05 50;
 
-    --muted: 0.94 0 0;
-    --muted-foreground: 0.5 0 0;
-    --accent: 0.92 0.01 35;
-    --accent-foreground: 0.2 0 0;
+    --muted: 0.93 0.01 250;
+    --muted-foreground: 0.5 0.03 250;
 
-    --destructive: 0.55 0.22 25;
+    /* Accent: Vivid Orange */
+    --accent: 0.68 0.18 50;
+    --accent-foreground: 0.98 0 0;
+
+    --destructive: 0.577 0.245 27.325;
     --destructive-foreground: 0.98 0 0;
 
-    --border: 0.88 0 0;
-    --input: 0.88 0 0;
-    --ring: 0.65 0.2 35;
+    --border: 0.88 0.02 250;
+    --input: 0.88 0.02 250;
+    --ring: 0.68 0.18 50;
 
-    --chart-1: 0.65 0.2 35;
-    --chart-2: 0.35 0.01 260;
-    --chart-3: 0.55 0.15 120;
+    /* Charts: oranges, ambers, blues variety */
+    --chart-1: 0.68 0.18 50;
+    --chart-2: 0.28 0.08 250;
+    --chart-3: 0.75 0.16 80;
     --chart-4: 0.45 0.12 200;
-    --chart-5: 0.7 0.18 60;
+    --chart-5: 0.82 0.14 60;
+
+    /* Sidebar: Navy */
+    --sidebar-background: 0.28 0.08 250;
+    --sidebar-foreground: 0.98 0 0;
+    --sidebar-primary: 0.68 0.18 50;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.35 0.07 250;
+    --sidebar-accent-foreground: 0.98 0 0;
+    --sidebar-border: 0.35 0.06 250;
+    --sidebar-ring: 0.68 0.18 50;
   }
 
   .dark {
-    /* Dark mode - Charcoal/Graphite + Safety Orange theme */
-    --background: 0.15 0.01 260;
-    --foreground: 0.95 0 0;
-    --card: 0.2 0.01 260;
-    --card-foreground: 0.95 0 0;
-    --popover: 0.18 0.01 260;
-    --popover-foreground: 0.95 0 0;
+    /* Dark mode — Deep Navy + Orange */
+    --background: 0.12 0.04 250;
+    --foreground: 0.95 0.01 250;
+    --card: 0.18 0.04 250;
+    --card-foreground: 0.95 0.01 250;
+    --popover: 0.16 0.04 250;
+    --popover-foreground: 0.95 0.01 250;
 
-    /* Primary: Safety Orange (brighter in dark mode) */
-    --primary: 0.7 0.22 35;
-    --primary-foreground: 0.15 0 0;
+    /* Primary stays orange in dark for contrast */
+    --primary: 0.68 0.18 50;
+    --primary-foreground: 0.98 0 0;
 
-    /* Secondary: Light Graphite */
-    --secondary: 0.3 0.01 260;
-    --secondary-foreground: 0.95 0 0;
+    --secondary: 0.25 0.05 250;
+    --secondary-foreground: 0.9 0.01 250;
 
-    --muted: 0.25 0.01 260;
-    --muted-foreground: 0.65 0 0;
-    --accent: 0.28 0.02 35;
-    --accent-foreground: 0.95 0 0;
+    --muted: 0.22 0.03 250;
+    --muted-foreground: 0.62 0.03 250;
+
+    --accent: 0.68 0.18 50;
+    --accent-foreground: 0.98 0 0;
 
     --destructive: 0.6 0.24 25;
     --destructive-foreground: 0.95 0 0;
 
-    --border: 0.3 0.01 260;
-    --input: 0.3 0.01 260;
-    --ring: 0.7 0.22 35;
+    --border: 0.3 0.05 250;
+    --input: 0.3 0.05 250;
+    --ring: 0.68 0.18 50;
 
-    --chart-1: 0.7 0.22 35;
+    --chart-1: 0.7 0.2 50;
     --chart-2: 0.55 0.15 260;
-    --chart-3: 0.6 0.18 120;
+    --chart-3: 0.75 0.18 80;
     --chart-4: 0.5 0.14 200;
-    --chart-5: 0.75 0.2 60;
+    --chart-5: 0.8 0.16 60;
+
+    --sidebar-background: 0.1 0.04 250;
+    --sidebar-foreground: 0.95 0 0;
+    --sidebar-primary: 0.68 0.18 50;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.2 0.05 250;
+    --sidebar-accent-foreground: 0.95 0 0;
+    --sidebar-border: 0.22 0.04 250;
+    --sidebar-ring: 0.68 0.18 50;
   }
 
   * {
@@ -83,6 +112,7 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: "Bricolage Grotesque", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
