@@ -28,6 +28,7 @@ import {
   Calendar,
   CheckCircle2,
   ClipboardList,
+  Clock,
   Eye,
   FileDown,
   Loader2,
@@ -47,6 +48,13 @@ import {
   SUBMISSIONS_KEY,
   getStoredSubmissions,
 } from "../PublicChecklistPage";
+
+function formatTimeFromISO(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export default function AllChecklistsPage() {
   const [submissions, setSubmissions] = useState<ChecklistSubmissionRecord[]>(
@@ -205,6 +213,8 @@ export default function AllChecklistsPage() {
                   <TableHead className="font-bold">Date</TableHead>
                   <TableHead className="font-bold">Driver</TableHead>
                   <TableHead className="font-bold">Role</TableHead>
+                  <TableHead className="font-bold">Time In</TableHead>
+                  <TableHead className="font-bold">Time Out</TableHead>
                   <TableHead className="font-bold">Completion</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">
@@ -216,7 +226,7 @@ export default function AllChecklistsPage() {
                 {filteredSubmissions.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={8}
                       className="text-center py-8 text-muted-foreground"
                     >
                       No checklists match your search
@@ -287,6 +297,38 @@ export default function AllChecklistsPage() {
                               —
                             </Badge>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-sm">
+                            <Clock className="w-3.5 h-3.5 text-chart-3 shrink-0" />
+                            <span
+                              className={
+                                submission.timeIn
+                                  ? "font-semibold text-chart-3"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {submission.timeIn
+                                ? formatTimeFromISO(submission.timeIn)
+                                : "—"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-sm">
+                            <Clock className="w-3.5 h-3.5 text-chart-4 shrink-0" />
+                            <span
+                              className={
+                                submission.timeOut
+                                  ? "font-semibold text-chart-4"
+                                  : "text-muted-foreground"
+                              }
+                            >
+                              {submission.timeOut
+                                ? formatTimeFromISO(submission.timeOut)
+                                : "—"}
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
@@ -409,6 +451,44 @@ export default function AllChecklistsPage() {
                     ) : (
                       <span className="text-muted-foreground">—</span>
                     )}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    Shift Start
+                  </p>
+                  <p className="font-bold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-chart-3" />
+                    <span
+                      className={
+                        selectedSubmission.timeIn
+                          ? "text-chart-3"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {selectedSubmission.timeIn
+                        ? formatTimeFromISO(selectedSubmission.timeIn)
+                        : "—"}
+                    </span>
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    Shift End
+                  </p>
+                  <p className="font-bold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-chart-4" />
+                    <span
+                      className={
+                        selectedSubmission.timeOut
+                          ? "text-chart-4"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {selectedSubmission.timeOut
+                        ? formatTimeFromISO(selectedSubmission.timeOut)
+                        : "—"}
+                    </span>
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3 col-span-2">

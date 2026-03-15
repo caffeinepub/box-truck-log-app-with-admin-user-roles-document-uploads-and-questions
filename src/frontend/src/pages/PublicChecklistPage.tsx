@@ -9,7 +9,13 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CheckCheck, CheckCircle2, ClipboardCheck, Truck } from "lucide-react";
+import {
+  CheckCheck,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock,
+  Truck,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -34,6 +40,8 @@ export interface ChecklistSubmissionRecord {
   timestamp: number;
   totalItems: number;
   checkedCount: number;
+  timeIn?: string;
+  timeOut?: string;
 }
 
 const CHECKLIST_SECTIONS: ChecklistSection[] = [
@@ -297,6 +305,13 @@ const SECTION_BORDER_COLORS = [
 const PROGRESS_KEY = "berks_bus_checklist_progress";
 export const SUBMISSIONS_KEY = "berks_bus_checklist_submissions";
 
+function formatTimeFromISO(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function getStoredSubmissions(): ChecklistSubmissionRecord[] {
   try {
     const raw = localStorage.getItem(SUBMISSIONS_KEY);
@@ -319,6 +334,8 @@ export default function PublicChecklistPage() {
   const [driverName, setDriverName] = useState("");
   const [signature, setSignature] = useState("");
   const [role, setRole] = useState<"Driver" | "Helper" | "">("");
+  const [timeIn, setTimeIn] = useState("");
+  const [timeOut, setTimeOut] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -332,6 +349,8 @@ export default function PublicChecklistPage() {
         if (data.driverName) setDriverName(data.driverName);
         if (data.signature) setSignature(data.signature);
         if (data.role) setRole(data.role);
+        if (data.timeIn) setTimeIn(data.timeIn);
+        if (data.timeOut) setTimeOut(data.timeOut);
       } catch {
         // ignore
       }
@@ -343,10 +362,17 @@ export default function PublicChecklistPage() {
     if (!submitted) {
       localStorage.setItem(
         PROGRESS_KEY,
-        JSON.stringify({ sections, driverName, signature, role }),
+        JSON.stringify({
+          sections,
+          driverName,
+          signature,
+          role,
+          timeIn,
+          timeOut,
+        }),
       );
     }
-  }, [sections, driverName, signature, role, submitted]);
+  }, [sections, driverName, signature, role, timeIn, timeOut, submitted]);
 
   const handleCheckboxChange = (sectionIndex: number, itemIndex: number) => {
     setSections((prev) =>
@@ -397,6 +423,8 @@ export default function PublicChecklistPage() {
         timestamp: Date.now(),
         totalItems,
         checkedCount,
+        timeIn: timeIn || undefined,
+        timeOut: timeOut || undefined,
       };
 
       saveSubmission(record);
@@ -415,6 +443,8 @@ export default function PublicChecklistPage() {
     setDriverName("");
     setSignature("");
     setRole("");
+    setTimeIn("");
+    setTimeOut("");
     setSubmitted(false);
     localStorage.removeItem(PROGRESS_KEY);
   };
@@ -456,6 +486,22 @@ export default function PublicChecklistPage() {
                   {role}
                 </span>
               </p>
+              {timeIn && (
+                <p className="text-sm text-foreground">
+                  Shift Start:{" "}
+                  <span className="font-bold text-chart-3">
+                    {formatTimeFromISO(timeIn)}
+                  </span>
+                </p>
+              )}
+              {timeOut && (
+                <p className="text-sm text-foreground">
+                  Shift End:{" "}
+                  <span className="font-bold text-chart-4">
+                    {formatTimeFromISO(timeOut)}
+                  </span>
+                </p>
+              )}
               <p className="text-sm text-muted-foreground">
                 Completed: {new Date().toLocaleDateString()} at{" "}
                 {new Date().toLocaleTimeString()}
@@ -593,6 +639,53 @@ export default function PublicChecklistPage() {
                     Please select your role before submitting
                   </p>
                 )}
+              </div>
+
+              {/* Shift Times */}
+              <div className="space-y-2">
+                <Label className="font-semibold flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-accent" />
+                  Shift Times
+                </Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setTimeIn(new Date().toISOString())}
+                    className={`flex items-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
+                      timeIn
+                        ? "border-accent bg-accent/10 text-accent"
+                        : "border-border bg-background text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                    }`}
+                    data-ocid="checklist.secondary_button"
+                  >
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span className="truncate">
+                      {timeIn
+                        ? `Clocked in at ${formatTimeFromISO(timeIn)}`
+                        : "Clock In (Start of Shift)"}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTimeOut(new Date().toISOString())}
+                    className={`flex items-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                      timeOut
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
+                    }`}
+                    data-ocid="checklist.toggle"
+                  >
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span className="truncate">
+                      {timeOut
+                        ? `Clocked out at ${formatTimeFromISO(timeOut)}`
+                        : "Clock Out (End of Shift)"}
+                    </span>
+                  </button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Tap to record current time. Tap again to update.
+                </p>
               </div>
             </CardContent>
           </Card>

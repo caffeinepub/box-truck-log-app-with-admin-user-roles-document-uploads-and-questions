@@ -15,14 +15,42 @@ function formatTime(ts: number): string {
   });
 }
 
-// jsPDF and autoTable are complex third-party APIs without precise TypeScript types
-// Using 'any' here is intentional and necessary for compatibility
-type PDFDoc = any;
-type AutoTableFn = (doc: PDFDoc, options: PDFDoc) => void;
+export function formatTimeFromISO(iso: string): string {
+  return new Date(iso).toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// Load jsPDF and jspdf-autotable from CDN
+function loadScript(src: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = src;
+    script.onload = () => resolve();
+    script.onerror = reject;
+    document.head.appendChild(script);
+  });
+}
+
+async function loadPDFLibs(): Promise<{ jsPDF: any; autoTable: any }> {
+  await loadScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+  );
+  await loadScript(
+    "https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js",
+  );
+  const w = window as any;
+  const jsPDF = w.jspdf?.jsPDF ?? w.jsPDF;
+  return { jsPDF, autoTable: null };
+}
 
 function buildSingleChecklistPDF(
-  doc: PDFDoc,
-  autoTable: AutoTableFn,
+  doc: any,
   submission: ChecklistSubmissionRecord,
 ): void {
   const pageWidth = doc.internal.pageSize.getWidth();
@@ -39,7 +67,7 @@ function buildSingleChecklistPDF(
   doc.setFontSize(10);
   doc.setTextColor(200, 210, 230);
   doc.setFont("helvetica", "normal");
-  doc.text("Pre-Trip Checklist — 28-ft Box Truck", 14, 21);
+  doc.text("Pre-Trip Checklist \u2014 28-ft Box Truck", 14, 21);
 
   let y = 38;
 
@@ -49,11 +77,16 @@ function buildSingleChecklistPDF(
       ? Math.round((submission.checkedCount / submission.totalItems) * 100)
       : 0;
 
-  autoTable(doc, {
+  doc.autoTable({
     startY: y,
     head: [],
     body: [
-      ["Driver Name", submission.driverName, "Role", submission.role ?? "—"],
+      [
+        "Driver Name",
+        submission.driverName,
+        "Role",
+        submission.role ?? "\u2014",
+      ],
       [
         "Date",
         formatDate(submission.timestamp),
@@ -65,6 +98,12 @@ function buildSingleChecklistPDF(
         submission.signature,
         "Completion",
         `${submission.checkedCount} / ${submission.totalItems} (${pct}%)`,
+      ],
+      [
+        "Time In",
+        submission.timeIn ? formatTimeFromISO(submission.timeIn) : "\u2014",
+        "Time Out",
+        submission.timeOut ? formatTimeFromISO(submission.timeOut) : "\u2014",
       ],
     ],
     theme: "grid",
@@ -100,7 +139,7 @@ function buildSingleChecklistPDF(
       item.label,
     ]);
 
-    autoTable(doc, {
+    doc.autoTable({
       startY: y,
       head: [[{ content: `${section.emoji}  ${section.title}`, colSpan: 2 }]],
       body: rows,
@@ -156,13 +195,9 @@ function buildSingleChecklistPDF(
 export async function generateSingleChecklistPDF(
   submission: ChecklistSubmissionRecord,
 ): Promise<void> {
-  const [{ default: jsPDF }, { autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-
+  const { jsPDF } = await loadPDFLibs();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-  buildSingleChecklistPDF(doc, autoTable, submission);
+  buildSingleChecklistPDF(doc, submission);
 
   const safeDriverName = submission.driverName
     .replace(/[^a-z0-9]/gi, "_")
@@ -176,18 +211,14 @@ export async function generateAllChecklistsPDF(
 ): Promise<void> {
   if (submissions.length === 0) return;
 
-  const [{ default: jsPDF }, { autoTable }] = await Promise.all([
-    import("jspdf"),
-    import("jspdf-autotable"),
-  ]);
-
+  const { jsPDF } = await loadPDFLibs();
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
   for (let i = 0; i < submissions.length; i++) {
     if (i > 0) {
       doc.addPage();
     }
-    buildSingleChecklistPDF(doc, autoTable, submissions[i]);
+    buildSingleChecklistPDF(doc, submissions[i]);
   }
 
   const dateStr = new Date().toLocaleDateString("en-US").replace(/\//g, "-");
