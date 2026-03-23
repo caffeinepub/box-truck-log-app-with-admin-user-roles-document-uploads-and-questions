@@ -105,6 +105,26 @@ function buildSingleChecklistPDF(
         "Time Out",
         submission.timeOut ? formatTimeFromISO(submission.timeOut) : "\u2014",
       ],
+      [
+        "Start Time",
+        submission.startTime
+          ? formatTimeFromISO(submission.startTime)
+          : "\u2014",
+        "End Time",
+        submission.endTime ? formatTimeFromISO(submission.endTime) : "\u2014",
+      ],
+      [
+        "Total Hours",
+        submission.totalHours ?? "\u2014",
+        "Driving Hours",
+        submission.drivingHours ?? "\u2014",
+      ],
+      [
+        "Truck #",
+        submission.truckNumber ? `Truck ${submission.truckNumber}` : "\u2014",
+        "",
+        "",
+      ],
     ],
     theme: "grid",
     styles: {

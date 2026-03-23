@@ -215,6 +215,8 @@ export default function AllChecklistsPage() {
                   <TableHead className="font-bold">Role</TableHead>
                   <TableHead className="font-bold">Time In</TableHead>
                   <TableHead className="font-bold">Time Out</TableHead>
+                  <TableHead className="font-bold">Truck</TableHead>
+                  <TableHead className="font-bold">Hours</TableHead>
                   <TableHead className="font-bold">Completion</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">
@@ -226,7 +228,7 @@ export default function AllChecklistsPage() {
                 {filteredSubmissions.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={10}
                       className="text-center py-8 text-muted-foreground"
                     >
                       No checklists match your search
@@ -328,6 +330,31 @@ export default function AllChecklistsPage() {
                                 ? formatTimeFromISO(submission.timeOut)
                                 : "—"}
                             </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-semibold">
+                            {submission.truckNumber
+                              ? `Truck ${submission.truckNumber}`
+                              : "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm space-y-0.5">
+                            {submission.totalHours && (
+                              <div className="font-semibold text-accent">
+                                {submission.totalHours}
+                              </div>
+                            )}
+                            {submission.drivingHours && (
+                              <div className="text-xs text-muted-foreground">
+                                Drive: {submission.drivingHours}h
+                              </div>
+                            )}
+                            {!submission.totalHours &&
+                              !submission.drivingHours && (
+                                <span className="text-muted-foreground">—</span>
+                              )}
                           </div>
                         </TableCell>
                         <TableCell>
@@ -489,6 +516,72 @@ export default function AllChecklistsPage() {
                         ? formatTimeFromISO(selectedSubmission.timeOut)
                         : "—"}
                     </span>
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    Start Time
+                  </p>
+                  <p className="font-bold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-chart-3" />
+                    <span
+                      className={
+                        selectedSubmission.startTime
+                          ? "text-chart-3"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {selectedSubmission.startTime
+                        ? formatTimeFromISO(selectedSubmission.startTime)
+                        : "—"}
+                    </span>
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    End Time
+                  </p>
+                  <p className="font-bold flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-chart-4" />
+                    <span
+                      className={
+                        selectedSubmission.endTime
+                          ? "text-chart-4"
+                          : "text-muted-foreground"
+                      }
+                    >
+                      {selectedSubmission.endTime
+                        ? formatTimeFromISO(selectedSubmission.endTime)
+                        : "—"}
+                    </span>
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    Total Hours
+                  </p>
+                  <p className="font-bold text-accent">
+                    {selectedSubmission.totalHours ?? "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    Driving Hours
+                  </p>
+                  <p className="font-bold">
+                    {selectedSubmission.drivingHours
+                      ? `${selectedSubmission.drivingHours}h`
+                      : "—"}
+                  </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                    Truck Number
+                  </p>
+                  <p className="font-bold">
+                    {selectedSubmission.truckNumber
+                      ? `Truck ${selectedSubmission.truckNumber}`
+                      : "—"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3 col-span-2">

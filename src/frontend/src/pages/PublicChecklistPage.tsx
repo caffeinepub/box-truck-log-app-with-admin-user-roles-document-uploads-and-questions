@@ -42,6 +42,11 @@ export interface ChecklistSubmissionRecord {
   checkedCount: number;
   timeIn?: string;
   timeOut?: string;
+  startTime?: string;
+  endTime?: string;
+  totalHours?: string;
+  drivingHours?: string;
+  truckNumber?: string;
 }
 
 const CHECKLIST_SECTIONS: ChecklistSection[] = [
@@ -336,6 +341,10 @@ export default function PublicChecklistPage() {
   const [role, setRole] = useState<"Driver" | "Helper" | "">("");
   const [timeIn, setTimeIn] = useState("");
   const [timeOut, setTimeOut] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [drivingHours, setDrivingHours] = useState("");
+  const [truckNumber, setTruckNumber] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -351,6 +360,10 @@ export default function PublicChecklistPage() {
         if (data.role) setRole(data.role);
         if (data.timeIn) setTimeIn(data.timeIn);
         if (data.timeOut) setTimeOut(data.timeOut);
+        if (data.startTime) setStartTime(data.startTime);
+        if (data.endTime) setEndTime(data.endTime);
+        if (data.drivingHours) setDrivingHours(data.drivingHours);
+        if (data.truckNumber) setTruckNumber(data.truckNumber);
       } catch {
         // ignore
       }
@@ -369,10 +382,26 @@ export default function PublicChecklistPage() {
           role,
           timeIn,
           timeOut,
+          startTime,
+          endTime,
+          drivingHours,
+          truckNumber,
         }),
       );
     }
-  }, [sections, driverName, signature, role, timeIn, timeOut, submitted]);
+  }, [
+    sections,
+    driverName,
+    signature,
+    role,
+    timeIn,
+    timeOut,
+    startTime,
+    endTime,
+    drivingHours,
+    truckNumber,
+    submitted,
+  ]);
 
   const handleCheckboxChange = (sectionIndex: number, itemIndex: number) => {
     setSections((prev) =>
@@ -397,6 +426,14 @@ export default function PublicChecklistPage() {
           : s,
       ),
     );
+  };
+
+  const calcTotalHours = (start: string, end: string): string => {
+    const diffMs = new Date(end).getTime() - new Date(start).getTime();
+    if (diffMs <= 0) return "0h 0m";
+    const hours = Math.floor(diffMs / 3600000);
+    const mins = Math.floor((diffMs % 3600000) / 60000);
+    return `${hours}h ${mins}m`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -425,6 +462,12 @@ export default function PublicChecklistPage() {
         checkedCount,
         timeIn: timeIn || undefined,
         timeOut: timeOut || undefined,
+        startTime: startTime || undefined,
+        endTime: endTime || undefined,
+        totalHours:
+          startTime && endTime ? calcTotalHours(startTime, endTime) : undefined,
+        drivingHours: drivingHours || undefined,
+        truckNumber: truckNumber || undefined,
       };
 
       saveSubmission(record);
@@ -445,6 +488,10 @@ export default function PublicChecklistPage() {
     setRole("");
     setTimeIn("");
     setTimeOut("");
+    setStartTime("");
+    setEndTime("");
+    setDrivingHours("");
+    setTruckNumber("");
     setSubmitted(false);
     localStorage.removeItem(PROGRESS_KEY);
   };
@@ -499,6 +546,44 @@ export default function PublicChecklistPage() {
                   Shift End:{" "}
                   <span className="font-bold text-chart-4">
                     {formatTimeFromISO(timeOut)}
+                  </span>
+                </p>
+              )}
+              {startTime && (
+                <p className="text-sm text-foreground">
+                  Start Time:{" "}
+                  <span className="font-bold text-chart-3">
+                    {formatTimeFromISO(startTime)}
+                  </span>
+                </p>
+              )}
+              {endTime && (
+                <p className="text-sm text-foreground">
+                  End Time:{" "}
+                  <span className="font-bold text-chart-4">
+                    {formatTimeFromISO(endTime)}
+                  </span>
+                </p>
+              )}
+              {startTime && endTime && (
+                <p className="text-sm text-foreground">
+                  Total Hours:{" "}
+                  <span className="font-bold text-accent">
+                    {calcTotalHours(startTime, endTime)}
+                  </span>
+                </p>
+              )}
+              {drivingHours && (
+                <p className="text-sm text-foreground">
+                  Driving Hours:{" "}
+                  <span className="font-bold text-primary">{drivingHours}</span>
+                </p>
+              )}
+              {truckNumber && (
+                <p className="text-sm text-foreground">
+                  Truck #:{" "}
+                  <span className="font-bold text-primary">
+                    Truck {truckNumber}
                   </span>
                 </p>
               )}
@@ -686,6 +771,87 @@ export default function PublicChecklistPage() {
                 <p className="text-xs text-muted-foreground">
                   Tap to record current time. Tap again to update.
                 </p>
+              </div>
+
+              {/* Start/End Time, Driving Hours, Truck Number */}
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setStartTime(new Date().toISOString())}
+                    className={`flex items-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
+                      startTime
+                        ? "border-chart-3 bg-chart-3/10 text-chart-3"
+                        : "border-border bg-background text-muted-foreground hover:border-chart-3/50 hover:text-foreground"
+                    }`}
+                    data-ocid="checklist.secondary_button"
+                  >
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span className="truncate">
+                      {startTime
+                        ? `Start: ${formatTimeFromISO(startTime)}`
+                        : "Start Time"}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEndTime(new Date().toISOString())}
+                    className={`flex items-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                      endTime
+                        ? "border-chart-4 bg-chart-4/10 text-chart-4"
+                        : "border-border bg-background text-muted-foreground hover:border-chart-4/50 hover:text-foreground"
+                    }`}
+                    data-ocid="checklist.toggle"
+                  >
+                    <Clock className="w-4 h-4 shrink-0" />
+                    <span className="truncate">
+                      {endTime
+                        ? `End: ${formatTimeFromISO(endTime)}`
+                        : "End Time"}
+                    </span>
+                  </button>
+                </div>
+                {startTime && endTime && (
+                  <div className="rounded-lg bg-accent/10 border border-accent/30 px-4 py-2 text-sm font-semibold text-accent flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Total Hours: {calcTotalHours(startTime, endTime)}
+                  </div>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-semibold">
+                      Driving Hours
+                    </Label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      placeholder="e.g. 5.5"
+                      value={drivingHours}
+                      onChange={(e) => setDrivingHours(e.target.value)}
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                      data-ocid="checklist.input"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-semibold">
+                      Truck Number
+                    </Label>
+                    <select
+                      value={truckNumber}
+                      onChange={(e) => setTruckNumber(e.target.value)}
+                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                      data-ocid="checklist.select"
+                    >
+                      <option value="">Select truck...</option>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                        <option key={n} value={String(n)}>
+                          Truck {n}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

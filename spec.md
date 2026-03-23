@@ -1,36 +1,30 @@
-# Berks Bus Service – Pre-Trip Checklist App
+# Burke's Bus Service - Driver Log Enhancement
 
 ## Current State
-- Public checklist page with 9 sections, Driver Information (name, signature, role), progress saving, and submission
-- Admin dashboard with password "Berksbus", showing all submissions with PDF download and delete
-- Submissions stored in localStorage with: id, driverName, signature, role, sections, timestamp, totalItems, checkedCount
+The app has a pre-trip checklist and driver log. The driver log currently includes driver name, role (Driver/Helper), and Clock In/Out buttons. Admins view submissions with PDF export.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `timeIn` and `timeOut` optional fields (ISO string) to `ChecklistSubmissionRecord`
-- Time In / Time Out buttons in the Driver Information card on `PublicChecklistPage`
-  - Tapping "Clock In" records current timestamp automatically
-  - Tapping "Clock Out" records current timestamp automatically
-  - Recorded times displayed next to each button
-  - Times are persisted with localStorage progress
-- Shift time columns (Time In / Time Out) in the admin `AllChecklistsPage` table
-- Shift times shown in the submission detail dialog
-- Shift times included in PDF export (driver info grid)
+- Start Time button (auto-records current time)
+- End Time button (auto-records current time)
+- Total Hours (auto-calculated from Start Time and End Time)
+- Driving Hours (manual numeric input)
+- Truck Number dropdown (options 1-10)
+- Admin dashboard shows all five new fields
+- PDF export includes all five new fields
 
 ### Modify
-- `ChecklistSubmissionRecord` type: add optional `timeIn?: string` and `timeOut?: string`
-- `PublicChecklistPage`: add shift time state, Clock In/Out UI, persist in progress, include in submission record
-- `AllChecklistsPage`: add Time In / Time Out columns to table and detail dialog
-- `pdfExport.ts`: add shift times to driver info grid in PDF
+- Driver log section on user form
+- Admin submission table and detail view
+- PDF generation logic
 
 ### Remove
-- Nothing removed
+- Nothing
 
 ## Implementation Plan
-1. Update `ChecklistSubmissionRecord` type with `timeIn?` and `timeOut?` fields
-2. Add shift time state and Clock In/Out buttons to `PublicChecklistPage` Driver Information card
-3. Include timeIn/timeOut in progress save/restore and final submission record
-4. Update `AllChecklistsPage` table to show Time In / Time Out columns
-5. Update submission detail dialog to include shift times
-6. Update `pdfExport.ts` to include shift times in driver info grid
+1. Update backend submission type to include startTime, endTime, drivingHours, truckNumber
+2. Update submitChecklist function to accept new fields
+3. Update PublicChecklistPage: add Start/End Time buttons, auto-calc total hours, driving hours input, truck number dropdown
+4. Update admin dashboard to show new fields
+5. Update PDF export to include new fields
