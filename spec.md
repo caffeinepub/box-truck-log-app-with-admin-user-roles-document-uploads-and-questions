@@ -1,30 +1,30 @@
-# Burke's Bus Service - Driver Log Enhancement
+# Burke's Bus Service
 
 ## Current State
-The app has a pre-trip checklist and driver log. The driver log currently includes driver name, role (Driver/Helper), and Clock In/Out buttons. Admins view submissions with PDF export.
+The app has a single `location` text field where drivers enter a combined address and stop number. This is stored in `ChecklistSubmissionRecord` as a `location: string` and displayed in the admin dashboard and PDF export as a single field.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Start Time button (auto-records current time)
-- End Time button (auto-records current time)
-- Total Hours (auto-calculated from Start Time and End Time)
-- Driving Hours (manual numeric input)
-- Truck Number dropdown (options 1-10)
-- Admin dashboard shows all five new fields
-- PDF export includes all five new fields
+- `stops` array field on `ChecklistSubmissionRecord` — each stop has `{ stopNumber: number; address: string }`
+- "Add Stop" button in the driver form to append a new stop entry
+- Remove button per stop row so drivers can delete a mistaken entry
+- Stop numbers are auto-incremented (Stop 1, Stop 2, Stop 3...)
+- Admin dashboard detail dialog shows all stops as a numbered list
+- PDF export renders all stops as a numbered list
 
 ### Modify
-- Driver log section on user form
-- Admin submission table and detail view
-- PDF generation logic
+- `PublicChecklistPage.tsx`: replace `location` state with `stops` array state; replace single location input with dynamic stop list UI
+- `AllChecklistsPage.tsx`: update detail dialog Location row to render stops list; update table Location column to show stop count or first stop preview
+- `pdfExport.ts`: update `buildSingleChecklistPDF` to render stops list instead of single location string
+- `ChecklistSubmissionRecord` interface: add `stops` field, keep `location` for backward compatibility with old submissions
 
 ### Remove
-- Nothing
+- Single `location` text input replaced by the dynamic stop list
 
 ## Implementation Plan
-1. Update backend submission type to include startTime, endTime, drivingHours, truckNumber
-2. Update submitChecklist function to accept new fields
-3. Update PublicChecklistPage: add Start/End Time buttons, auto-calc total hours, driving hours input, truck number dropdown
-4. Update admin dashboard to show new fields
-5. Update PDF export to include new fields
+1. Update `ChecklistSubmissionRecord` interface to include `stops?: Array<{stopNumber: number; address: string}>` alongside existing `location` for backward compat
+2. Update `PublicChecklistPage.tsx` state and UI: `stops` array, Add Stop button, per-row address input and remove button, auto-increment stop numbers
+3. Pass `stops` in submission object
+4. Update `AllChecklistsPage.tsx` detail dialog to render stops list
+5. Update `pdfExport.ts` to render stops in PDF

@@ -32,6 +32,7 @@ import {
   Eye,
   FileDown,
   Loader2,
+  MapPin,
   Search,
   Trash2,
   User,
@@ -116,7 +117,9 @@ export default function AllChecklistsPage() {
     try {
       await generateAllChecklistsPDF(filteredSubmissions);
       toast.success(
-        `PDF downloaded with ${filteredSubmissions.length} submission${filteredSubmissions.length !== 1 ? "s" : ""}`,
+        `PDF downloaded with ${filteredSubmissions.length} submission${
+          filteredSubmissions.length !== 1 ? "s" : ""
+        }`,
       );
     } catch {
       toast.error("Failed to generate PDF. Please try again.");
@@ -217,6 +220,7 @@ export default function AllChecklistsPage() {
                   <TableHead className="font-bold">Time Out</TableHead>
                   <TableHead className="font-bold">Truck</TableHead>
                   <TableHead className="font-bold">Hours</TableHead>
+                  <TableHead className="font-bold">Stops</TableHead>
                   <TableHead className="font-bold">Completion</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">
@@ -228,7 +232,7 @@ export default function AllChecklistsPage() {
                 {filteredSubmissions.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={10}
+                      colSpan={11}
                       className="text-center py-8 text-muted-foreground"
                     >
                       No checklists match your search
@@ -243,6 +247,8 @@ export default function AllChecklistsPage() {
                               100,
                           )
                         : 0;
+                    const stopCount = submission.stops?.length ?? 0;
+                    const firstStop = submission.stops?.[0];
                     return (
                       <TableRow
                         key={submission.id}
@@ -356,6 +362,27 @@ export default function AllChecklistsPage() {
                                 <span className="text-muted-foreground">—</span>
                               )}
                           </div>
+                        </TableCell>
+                        <TableCell>
+                          {stopCount > 0 ? (
+                            <div className="text-sm space-y-0.5">
+                              <div className="flex items-center gap-1 font-semibold text-primary">
+                                <MapPin className="w-3 h-3" />
+                                {stopCount} stop{stopCount !== 1 ? "s" : ""}
+                              </div>
+                              {firstStop && (
+                                <div className="text-xs text-muted-foreground truncate max-w-[120px]">
+                                  {firstStop.address}
+                                </div>
+                              )}
+                            </div>
+                          ) : submission.location ? (
+                            <div className="text-xs text-muted-foreground truncate max-w-[120px]">
+                              {submission.location}
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
@@ -520,7 +547,7 @@ export default function AllChecklistsPage() {
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3">
                   <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                    Start Time
+                    Start Drive Time
                   </p>
                   <p className="font-bold flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-chart-3" />
@@ -539,7 +566,7 @@ export default function AllChecklistsPage() {
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3">
                   <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                    End Time
+                    End Drive Time
                   </p>
                   <p className="font-bold flex items-center gap-1.5">
                     <Clock className="w-3.5 h-3.5 text-chart-4" />
@@ -583,6 +610,32 @@ export default function AllChecklistsPage() {
                       ? `Truck ${selectedSubmission.truckNumber}`
                       : "—"}
                   </p>
+                </div>
+                <div className="rounded-lg bg-secondary/40 p-3 col-span-2">
+                  <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5" />
+                    Delivery Stops
+                  </p>
+                  {selectedSubmission.stops &&
+                  selectedSubmission.stops.length > 0 ? (
+                    <div className="space-y-1">
+                      {selectedSubmission.stops.map((stop) => (
+                        <div
+                          key={stop.stopNumber}
+                          className="flex items-start gap-2 text-sm"
+                        >
+                          <span className="shrink-0 text-xs font-bold text-primary bg-primary/10 rounded px-1.5 py-0.5">
+                            Stop {stop.stopNumber}
+                          </span>
+                          <span className="font-medium">{stop.address}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : selectedSubmission.location ? (
+                    <p className="font-bold">{selectedSubmission.location}</p>
+                  ) : (
+                    <p className="text-muted-foreground">—</p>
+                  )}
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3 col-span-2">
                   <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
@@ -646,7 +699,9 @@ export default function AllChecklistsPage() {
                       {section.items.map((item) => (
                         <div
                           key={item.id}
-                          className={`flex items-center gap-2.5 text-sm p-2 rounded-lg ${item.checked ? "bg-accent/8" : "bg-muted/30"}`}
+                          className={`flex items-center gap-2.5 text-sm p-2 rounded-lg ${
+                            item.checked ? "bg-accent/8" : "bg-muted/30"
+                          }`}
                         >
                           {item.checked ? (
                             <CheckCircle2 className="w-4 h-4 text-accent shrink-0" />

@@ -71,6 +71,18 @@ function buildSingleChecklistPDF(
 
   let y = 38;
 
+  // Build stops cell text
+  let stopsText: string;
+  if (submission.stops && submission.stops.length > 0) {
+    stopsText = submission.stops
+      .map((s) => `Stop ${s.stopNumber}: ${s.address}`)
+      .join("\n");
+  } else if (submission.location) {
+    stopsText = submission.location;
+  } else {
+    stopsText = "\u2014";
+  }
+
   // Driver info grid
   const pct =
     submission.totalItems > 0
@@ -106,11 +118,11 @@ function buildSingleChecklistPDF(
         submission.timeOut ? formatTimeFromISO(submission.timeOut) : "\u2014",
       ],
       [
-        "Start Time",
+        "Start Drive Time",
         submission.startTime
           ? formatTimeFromISO(submission.startTime)
           : "\u2014",
-        "End Time",
+        "End Drive Time",
         submission.endTime ? formatTimeFromISO(submission.endTime) : "\u2014",
       ],
       [
@@ -125,6 +137,7 @@ function buildSingleChecklistPDF(
         "",
         "",
       ],
+      ["Delivery Stops", { content: stopsText, colSpan: 3 }],
     ],
     theme: "grid",
     styles: {
