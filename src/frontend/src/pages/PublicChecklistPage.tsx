@@ -14,11 +14,9 @@ import {
   CheckCircle2,
   ClipboardCheck,
   Clock,
-  MapPin,
-  Plus,
-  Trash2,
   Truck,
 } from "lucide-react";
+
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
@@ -34,15 +32,12 @@ interface ChecklistSection {
   items: ChecklistItemData[];
 }
 
-export interface StopEntry {
-  stopNumber: number;
-  address: string;
-}
-
 export interface ChecklistSubmissionRecord {
   id: string;
   driverName: string;
-  signature: string;
+  startMileage?: string;
+  endMileage?: string;
+  totalMiles?: string;
   role: "Driver" | "Helper";
   sections: ChecklistSection[];
   timestamp: number;
@@ -50,13 +45,9 @@ export interface ChecklistSubmissionRecord {
   checkedCount: number;
   timeIn?: string;
   timeOut?: string;
-  startTime?: string;
-  endTime?: string;
-  totalHours?: string;
   drivingHours?: string;
   truckNumber?: string;
   location?: string;
-  stops?: StopEntry[];
 }
 
 const CHECKLIST_SECTIONS: ChecklistSection[] = [
@@ -347,37 +338,15 @@ export default function PublicChecklistPage() {
   const [sections, setSections] =
     useState<ChecklistSection[]>(CHECKLIST_SECTIONS);
   const [driverName, setDriverName] = useState("");
-  const [signature, setSignature] = useState("");
+  const [startMileage, setStartMileage] = useState("");
+  const [endMileage, setEndMileage] = useState("");
   const [role, setRole] = useState<"Driver" | "Helper" | "">("");
   const [timeIn, setTimeIn] = useState("");
   const [timeOut, setTimeOut] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
   const [drivingHours, setDrivingHours] = useState("");
   const [truckNumber, setTruckNumber] = useState("");
-  const [stops, setStops] = useState<StopEntry[]>([
-    { stopNumber: 1, address: "" },
-  ]);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const addStop = () => {
-    setStops((prev) => [...prev, { stopNumber: prev.length + 1, address: "" }]);
-  };
-
-  const removeStop = (index: number) => {
-    setStops((prev) =>
-      prev
-        .filter((_, i) => i !== index)
-        .map((s, i) => ({ ...s, stopNumber: i + 1 })),
-    );
-  };
-
-  const updateStopAddress = (index: number, address: string) => {
-    setStops((prev) =>
-      prev.map((s, i) => (i === index ? { ...s, address } : s)),
-    );
-  };
 
   // Load progress from localStorage on mount
   useEffect(() => {
@@ -387,17 +356,13 @@ export default function PublicChecklistPage() {
         const data = JSON.parse(saved);
         if (data.sections) setSections(data.sections);
         if (data.driverName) setDriverName(data.driverName);
-        if (data.signature) setSignature(data.signature);
+        if (data.startMileage) setStartMileage(data.startMileage);
+        if (data.endMileage) setEndMileage(data.endMileage);
         if (data.role) setRole(data.role);
         if (data.timeIn) setTimeIn(data.timeIn);
         if (data.timeOut) setTimeOut(data.timeOut);
-        if (data.startTime) setStartTime(data.startTime);
-        if (data.endTime) setEndTime(data.endTime);
         if (data.drivingHours) setDrivingHours(data.drivingHours);
         if (data.truckNumber) setTruckNumber(data.truckNumber);
-        if (data.stops && Array.isArray(data.stops) && data.stops.length > 0) {
-          setStops(data.stops);
-        }
       } catch {
         // ignore
       }
@@ -412,30 +377,26 @@ export default function PublicChecklistPage() {
         JSON.stringify({
           sections,
           driverName,
-          signature,
+          startMileage,
+          endMileage,
           role,
           timeIn,
           timeOut,
-          startTime,
-          endTime,
           drivingHours,
           truckNumber,
-          stops,
         }),
       );
     }
   }, [
     sections,
     driverName,
-    signature,
+    startMileage,
+    endMileage,
     role,
     timeIn,
     timeOut,
-    startTime,
-    endTime,
     drivingHours,
     truckNumber,
-    stops,
     submitted,
   ]);
 
@@ -464,17 +425,9 @@ export default function PublicChecklistPage() {
     );
   };
 
-  const calcTotalHours = (start: string, end: string): string => {
-    const diffMs = new Date(end).getTime() - new Date(start).getTime();
-    if (diffMs <= 0) return "0h 0m";
-    const hours = Math.floor(diffMs / 3600000);
-    const mins = Math.floor((diffMs % 3600000) / 60000);
-    return `${hours}h ${mins}m`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!driverName.trim() || !signature.trim() || !role) {
+    if (!driverName.trim() || !role) {
       toast.error("Please fill in all required fields including your role");
       return;
     }
@@ -487,12 +440,21 @@ export default function PublicChecklistPage() {
         0,
       );
 
-      const filledStops = stops.filter((s) => s.address.trim() !== "");
-
       const record: ChecklistSubmissionRecord = {
         id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
         driverName: driverName.trim(),
-        signature: signature.trim(),
+        startMileage: startMileage || undefined,
+        endMileage: endMileage || undefined,
+        totalMiles:
+          startMileage &&
+          endMileage &&
+          !Number.isNaN(
+            Number.parseInt(endMileage) - Number.parseInt(startMileage),
+          )
+            ? String(
+                Number.parseInt(endMileage) - Number.parseInt(startMileage),
+              )
+            : undefined,
         role: role as "Driver" | "Helper",
         sections,
         timestamp: Date.now(),
@@ -500,13 +462,8 @@ export default function PublicChecklistPage() {
         checkedCount,
         timeIn: timeIn || undefined,
         timeOut: timeOut || undefined,
-        startTime: startTime || undefined,
-        endTime: endTime || undefined,
-        totalHours:
-          startTime && endTime ? calcTotalHours(startTime, endTime) : undefined,
         drivingHours: drivingHours || undefined,
         truckNumber: truckNumber || undefined,
-        stops: filledStops.length > 0 ? filledStops : undefined,
       };
 
       saveSubmission(record);
@@ -523,15 +480,13 @@ export default function PublicChecklistPage() {
   const handleStartNew = () => {
     setSections(CHECKLIST_SECTIONS);
     setDriverName("");
-    setSignature("");
+    setStartMileage("");
+    setEndMileage("");
     setRole("");
     setTimeIn("");
     setTimeOut("");
-    setStartTime("");
-    setEndTime("");
     setDrivingHours("");
     setTruckNumber("");
-    setStops([{ stopNumber: 1, address: "" }]);
     setSubmitted(false);
     localStorage.removeItem(PROGRESS_KEY);
   };
@@ -545,7 +500,6 @@ export default function PublicChecklistPage() {
     totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
 
   if (submitted) {
-    const filledStops = stops.filter((s) => s.address.trim() !== "");
     return (
       <div className="min-h-[calc(100vh-80px)] flex items-center justify-center bg-gradient-to-br from-background to-secondary/30 p-4">
         <Card className="max-w-md w-full border-2 border-accent/30 shadow-xl">
@@ -592,30 +546,6 @@ export default function PublicChecklistPage() {
                   </span>
                 </p>
               )}
-              {startTime && (
-                <p className="text-sm text-foreground">
-                  Start Drive Time:{" "}
-                  <span className="font-bold text-chart-3">
-                    {formatTimeFromISO(startTime)}
-                  </span>
-                </p>
-              )}
-              {endTime && (
-                <p className="text-sm text-foreground">
-                  End Drive Time:{" "}
-                  <span className="font-bold text-chart-4">
-                    {formatTimeFromISO(endTime)}
-                  </span>
-                </p>
-              )}
-              {startTime && endTime && (
-                <p className="text-sm text-foreground">
-                  Total Hours:{" "}
-                  <span className="font-bold text-accent">
-                    {calcTotalHours(startTime, endTime)}
-                  </span>
-                </p>
-              )}
               {drivingHours && (
                 <p className="text-sm text-foreground">
                   Driving Hours:{" "}
@@ -629,21 +559,6 @@ export default function PublicChecklistPage() {
                     Truck {truckNumber}
                   </span>
                 </p>
-              )}
-              {filledStops.length > 0 && (
-                <div className="text-sm text-foreground text-left mt-2">
-                  <p className="font-semibold text-primary mb-1">
-                    Delivery Stops:
-                  </p>
-                  {filledStops.map((s) => (
-                    <p
-                      key={s.stopNumber}
-                      className="text-xs text-muted-foreground"
-                    >
-                      Stop {s.stopNumber}: {s.address}
-                    </p>
-                  ))}
-                </div>
               )}
               <p className="text-sm text-muted-foreground">
                 Completed: {new Date().toLocaleDateString()} at{" "}
@@ -732,19 +647,60 @@ export default function PublicChecklistPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="signature" className="font-semibold">
-                  Signature *
+                <Label className="font-semibold flex items-center gap-2">
+                  🛣️ Mileage Tracker
                 </Label>
-                <Input
-                  id="signature"
-                  type="text"
-                  placeholder="Type your name as signature"
-                  value={signature}
-                  onChange={(e) => setSignature(e.target.value)}
-                  required
-                  className="border-2 focus:border-accent"
-                  data-ocid="checklist.textarea"
-                />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor="startMileage"
+                      className="text-sm font-medium text-muted-foreground"
+                    >
+                      Start Mileage
+                    </Label>
+                    <Input
+                      id="startMileage"
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 45000"
+                      value={startMileage}
+                      onChange={(e) => setStartMileage(e.target.value)}
+                      className="border-2 focus:border-accent"
+                      data-ocid="checklist.input"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label
+                      htmlFor="endMileage"
+                      className="text-sm font-medium text-muted-foreground"
+                    >
+                      End Mileage
+                    </Label>
+                    <Input
+                      id="endMileage"
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 45200"
+                      value={endMileage}
+                      onChange={(e) => setEndMileage(e.target.value)}
+                      className="border-2 focus:border-accent"
+                      data-ocid="checklist.input"
+                    />
+                  </div>
+                </div>
+                {startMileage &&
+                  endMileage &&
+                  !Number.isNaN(
+                    Number.parseInt(endMileage) - Number.parseInt(startMileage),
+                  ) && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent/10 border border-accent/20">
+                      <span className="text-sm font-bold text-accent">
+                        Total Miles:{" "}
+                        {Number.parseInt(endMileage) -
+                          Number.parseInt(startMileage)}
+                      </span>
+                    </div>
+                  )}
               </div>
               <div className="space-y-2">
                 <Label className="font-semibold">Role *</Label>
@@ -831,139 +787,36 @@ export default function PublicChecklistPage() {
                 </p>
               </div>
 
-              {/* Start/End Drive Time, Driving Hours, Truck Number */}
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setStartTime(new Date().toISOString())}
-                    className={`flex items-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
-                      startTime
-                        ? "border-chart-3 bg-chart-3/10 text-chart-3"
-                        : "border-border bg-background text-muted-foreground hover:border-chart-3/50 hover:text-foreground"
-                    }`}
-                    data-ocid="checklist.secondary_button"
-                  >
-                    <Clock className="w-4 h-4 shrink-0" />
-                    <span className="truncate">
-                      {startTime
-                        ? `Start: ${formatTimeFromISO(startTime)}`
-                        : "Start Drive Time"}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setEndTime(new Date().toISOString())}
-                    className={`flex items-center gap-2 py-3 px-4 rounded-xl border-2 font-semibold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-                      endTime
-                        ? "border-chart-4 bg-chart-4/10 text-chart-4"
-                        : "border-border bg-background text-muted-foreground hover:border-chart-4/50 hover:text-foreground"
-                    }`}
-                    data-ocid="checklist.toggle"
-                  >
-                    <Clock className="w-4 h-4 shrink-0" />
-                    <span className="truncate">
-                      {endTime
-                        ? `End: ${formatTimeFromISO(endTime)}`
-                        : "End Drive Time"}
-                    </span>
-                  </button>
+              {/* Driving Hours & Truck Number */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold">Driving Hours</Label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    placeholder="e.g. 5.5"
+                    value={drivingHours}
+                    onChange={(e) => setDrivingHours(e.target.value)}
+                    className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                    data-ocid="checklist.input"
+                  />
                 </div>
-                {startTime && endTime && (
-                  <div className="rounded-lg bg-accent/10 border border-accent/30 px-4 py-2 text-sm font-semibold text-accent flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    Total Hours: {calcTotalHours(startTime, endTime)}
-                  </div>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-semibold">
-                      Driving Hours
-                    </Label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.5"
-                      placeholder="e.g. 5.5"
-                      value={drivingHours}
-                      onChange={(e) => setDrivingHours(e.target.value)}
-                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
-                      data-ocid="checklist.input"
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm font-semibold">
-                      Truck Number
-                    </Label>
-                    <select
-                      value={truckNumber}
-                      onChange={(e) => setTruckNumber(e.target.value)}
-                      className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
-                      data-ocid="checklist.select"
-                    >
-                      <option value="">Select truck...</option>
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                        <option key={n} value={String(n)}>
-                          Truck {n}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Delivery Stops */}
-                <div className="space-y-3">
-                  <Label className="text-sm font-semibold flex items-center gap-2">
-                    <MapPin className="w-4 h-4 text-accent" />
-                    Delivery Stops
-                  </Label>
-                  <div className="space-y-2">
-                    {stops.map((stop, index) => (
-                      <div
-                        key={stop.stopNumber}
-                        className="flex items-center gap-2"
-                        data-ocid={`checklist.item.${index + 1}`}
-                      >
-                        <span className="shrink-0 w-16 text-xs font-bold text-primary bg-primary/10 rounded-lg px-2 py-2 text-center">
-                          Stop {stop.stopNumber}
-                        </span>
-                        <input
-                          type="text"
-                          placeholder="Enter address..."
-                          value={stop.address}
-                          onChange={(e) =>
-                            updateStopAddress(index, e.target.value)
-                          }
-                          className="flex-1 rounded-xl border-2 border-border bg-background px-3 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
-                          data-ocid={"checklist.input"}
-                        />
-                        {stops.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeStop(index)}
-                            className="shrink-0 p-2 rounded-xl border-2 border-destructive/30 text-destructive hover:bg-destructive/10 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
-                            aria-label={`Remove stop ${stop.stopNumber}`}
-                            data-ocid={`checklist.delete_button.${index + 1}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold">Truck Number</Label>
+                  <select
+                    value={truckNumber}
+                    onChange={(e) => setTruckNumber(e.target.value)}
+                    className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                    data-ocid="checklist.select"
+                  >
+                    <option value="">Select truck...</option>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                      <option key={n} value={String(n)}>
+                        Truck {n}
+                      </option>
                     ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={addStop}
-                    className="flex items-center gap-2 w-full py-2.5 px-4 rounded-xl border-2 border-dashed border-accent/50 text-accent font-semibold text-sm hover:border-accent hover:bg-accent/5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    data-ocid="checklist.secondary_button"
-                  >
-                    <Plus className="w-4 h-4" />
-                    Add Stop
-                  </button>
-                  <p className="text-xs text-muted-foreground">
-                    Add each delivery stop as you go. Submit everything at end
-                    of shift.
-                  </p>
+                  </select>
                 </div>
               </div>
             </CardContent>
@@ -1051,6 +904,33 @@ export default function PublicChecklistPage() {
             );
           })}
 
+          {/* QR Code Share Section */}
+          <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-background shadow-md">
+            <CardHeader className="pb-2">
+              <CardTitle className="font-display font-bold text-base flex items-center gap-2">
+                <span className="text-xl">📱</span>
+                Share App — Scan QR Code
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Share this QR code with your team to access the checklist
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center gap-3 pb-4">
+              <div className="bg-white p-3 rounded-xl shadow-inner border border-border">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(window.location.origin + window.location.pathname)}&color=0f2850&bgcolor=ffffff`}
+                  alt="QR code to access the checklist"
+                  width={160}
+                  height={160}
+                  className="rounded"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground text-center break-all max-w-xs font-mono bg-secondary/50 px-3 py-1.5 rounded-lg">
+                {window.location.origin + window.location.pathname}
+              </p>
+            </CardContent>
+          </Card>
+
           {/* Submit Button */}
           <Card className="border-2 border-accent/30 bg-gradient-to-br from-secondary/40 to-background shadow-lg">
             <CardContent className="pt-6 pb-6">
@@ -1058,12 +938,7 @@ export default function PublicChecklistPage() {
                 type="submit"
                 size="lg"
                 className="w-full text-lg font-bold bg-gradient-to-r from-accent to-chart-5 text-white hover:opacity-92 shadow-lg shadow-accent/30 py-6"
-                disabled={
-                  isSubmitting ||
-                  !driverName.trim() ||
-                  !signature.trim() ||
-                  !role
-                }
+                disabled={isSubmitting || !driverName.trim() || !role}
                 data-ocid="checklist.submit_button"
               >
                 {isSubmitting ? (
