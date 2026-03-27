@@ -214,11 +214,11 @@ export default function AllChecklistsPage() {
                 <TableRow className="bg-muted/50">
                   <TableHead className="font-bold">Date</TableHead>
                   <TableHead className="font-bold">Driver</TableHead>
-                  <TableHead className="font-bold">Role</TableHead>
                   <TableHead className="font-bold">Time In</TableHead>
                   <TableHead className="font-bold">Time Out</TableHead>
                   <TableHead className="font-bold">Truck</TableHead>
                   <TableHead className="font-bold">Driving Hrs</TableHead>
+                  <TableHead className="font-bold">Fuel</TableHead>
                   <TableHead className="font-bold">Completion</TableHead>
                   <TableHead className="font-bold">Status</TableHead>
                   <TableHead className="text-right font-bold">
@@ -284,27 +284,6 @@ export default function AllChecklistsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {submission.role === "Driver" ? (
-                            <Badge className="bg-primary/15 text-primary border-primary/30 font-semibold">
-                              🚛 Driver
-                            </Badge>
-                          ) : submission.role === "Helper" ? (
-                            <Badge
-                              variant="secondary"
-                              className="font-semibold"
-                            >
-                              🤝 Helper
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-muted-foreground font-medium"
-                            >
-                              —
-                            </Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>
                           <div className="flex items-center gap-1.5 text-sm">
                             <Clock className="w-3.5 h-3.5 text-chart-3 shrink-0" />
                             <span
@@ -348,6 +327,11 @@ export default function AllChecklistsPage() {
                             {submission.drivingHours
                               ? `${submission.drivingHours}h`
                               : "—"}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm font-semibold">
+                            {submission.fuelLevel ?? "—"}
                           </span>
                         </TableCell>
                         <TableCell>
@@ -461,16 +445,12 @@ export default function AllChecklistsPage() {
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3">
                   <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                    Role
+                    Truck Number
                   </p>
                   <p className="font-bold">
-                    {selectedSubmission.role === "Driver" ? (
-                      <span className="text-primary">🚛 Driver</span>
-                    ) : selectedSubmission.role === "Helper" ? (
-                      <span className="text-muted-foreground">🤝 Helper</span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                    {selectedSubmission.truckNumber
+                      ? `Truck ${selectedSubmission.truckNumber}`
+                      : "—"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3">
@@ -523,12 +503,10 @@ export default function AllChecklistsPage() {
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3">
                   <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                    Truck Number
+                    ⛽ Fuel Level
                   </p>
                   <p className="font-bold">
-                    {selectedSubmission.truckNumber
-                      ? `Truck ${selectedSubmission.truckNumber}`
-                      : "—"}
+                    {selectedSubmission.fuelLevel ?? "—"}
                   </p>
                 </div>
                 <div className="rounded-lg bg-secondary/40 p-3 col-span-2">
@@ -578,6 +556,16 @@ export default function AllChecklistsPage() {
                     </span>
                   </p>
                 </div>
+                {selectedSubmission.repairsNeeded && (
+                  <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 col-span-2">
+                    <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wide mb-1">
+                      🔧 Repairs Needed
+                    </p>
+                    <p className="text-sm font-medium whitespace-pre-wrap">
+                      {selectedSubmission.repairsNeeded}
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end">

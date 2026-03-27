@@ -84,8 +84,8 @@ function buildSingleChecklistPDF(
       [
         "Driver Name",
         submission.driverName,
-        "Role",
-        submission.role ?? "\u2014",
+        "Truck #",
+        submission.truckNumber ? `Truck ${submission.truckNumber}` : "\u2014",
       ],
       [
         "Date",
@@ -102,20 +102,20 @@ function buildSingleChecklistPDF(
       [
         "Total Miles",
         submission.totalMiles ? `${submission.totalMiles} mi` : "\u2014",
+        "Fuel Level",
+        submission.fuelLevel ?? "\u2014",
+      ],
+      [
         "Completion",
         `${submission.checkedCount} / ${submission.totalItems} (${pct}%)`,
+        "Driving Hours",
+        submission.drivingHours ?? "\u2014",
       ],
       [
         "Time In",
         submission.timeIn ? formatTimeFromISO(submission.timeIn) : "\u2014",
         "Time Out",
         submission.timeOut ? formatTimeFromISO(submission.timeOut) : "\u2014",
-      ],
-      [
-        "Driving Hours",
-        submission.drivingHours ?? "\u2014",
-        "Truck #",
-        submission.truckNumber ? `Truck ${submission.truckNumber}` : "\u2014",
       ],
     ],
     theme: "grid",
@@ -189,6 +189,25 @@ function buildSingleChecklistPDF(
       margin: { left: 14, right: 14 },
     });
 
+    y = (doc.lastAutoTable?.finalY ?? y) + 5;
+  }
+
+  // Repairs Needed section
+  if (submission.repairsNeeded) {
+    doc.autoTable({
+      startY: y,
+      head: [[{ content: "\ud83d\udd27  Repairs Needed", colSpan: 1 }]],
+      body: [[submission.repairsNeeded]],
+      theme: "striped",
+      headStyles: {
+        fillColor: [180, 30, 30],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: "bold",
+      },
+      bodyStyles: { fontSize: 8 },
+      margin: { left: 14, right: 14 },
+    });
     y = (doc.lastAutoTable?.finalY ?? y) + 5;
   }
 

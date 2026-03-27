@@ -38,7 +38,8 @@ export interface ChecklistSubmissionRecord {
   startMileage?: string;
   endMileage?: string;
   totalMiles?: string;
-  role: "Driver" | "Helper";
+  fuelLevel?: string;
+  repairsNeeded?: string;
   sections: ChecklistSection[];
   timestamp: number;
   totalItems: number;
@@ -74,16 +75,6 @@ const CHECKLIST_SECTIONS: ChecklistSection[] = [
       {
         id: "emergency_contacts",
         label: "Emergency contact numbers",
-        checked: false,
-      },
-      {
-        id: "fire_extinguisher",
-        label: "Fire extinguisher (charged & mounted)",
-        checked: false,
-      },
-      {
-        id: "reflective_triangles",
-        label: "Reflective triangles / flares",
         checked: false,
       },
       {
@@ -204,62 +195,7 @@ const CHECKLIST_SECTIONS: ChecklistSection[] = [
         checked: false,
       },
       { id: "cargo_light", label: "Interior cargo light", checked: false },
-    ],
-  },
-  {
-    title: "Box / Cargo Area",
-    emoji: "🚪",
-    items: [
-      {
-        id: "cargo_secured",
-        label: "Cargo secured (straps, load bars, etc.)",
-        checked: false,
-      },
-      { id: "no_shifting", label: "No shifting risk", checked: false },
-      { id: "doors_open", label: "Doors open/close smoothly", checked: false },
-      {
-        id: "door_latches",
-        label: "Door latches lock securely",
-        checked: false,
-      },
-      {
-        id: "door_tracks",
-        label: "Roll-up door tracks intact",
-        checked: false,
-      },
-      {
-        id: "floor_solid",
-        label: "Floor solid (no holes or soft spots)",
-        checked: false,
-      },
-      { id: "roof_dry", label: "Roof dry (no leaks)", checked: false },
-    ],
-  },
-  {
-    title: "Safety & Emergency",
-    emoji: "🧯",
-    items: [
-      {
-        id: "fire_extinguisher_accessible",
-        label: "Fire extinguisher accessible",
-        checked: false,
-      },
-      {
-        id: "reflective_triangles_present",
-        label: "Reflective triangles present",
-        checked: false,
-      },
       { id: "backup_alarm", label: "Backup alarm working", checked: false },
-      {
-        id: "camera_system",
-        label: "Camera system working (if equipped)",
-        checked: false,
-      },
-      {
-        id: "fuel_level",
-        label: "Fuel level sufficient for route",
-        checked: false,
-      },
     ],
   },
   {
@@ -279,6 +215,11 @@ const CHECKLIST_SECTIONS: ChecklistSection[] = [
       { id: "visible_leaks", label: "No visible leaks", checked: false },
       { id: "mud_flaps", label: "Mud flaps secure", checked: false },
       { id: "exhaust_system", label: "Exhaust system secure", checked: false },
+      {
+        id: "cargo_box_repair",
+        label: "Cargo box in good repair",
+        checked: false,
+      },
     ],
   },
   {
@@ -338,13 +279,14 @@ export default function PublicChecklistPage() {
   const [sections, setSections] =
     useState<ChecklistSection[]>(CHECKLIST_SECTIONS);
   const [driverName, setDriverName] = useState("");
+  const [truckNumber, setTruckNumber] = useState("");
   const [startMileage, setStartMileage] = useState("");
   const [endMileage, setEndMileage] = useState("");
-  const [role, setRole] = useState<"Driver" | "Helper" | "">("");
+  const [fuelLevel, setFuelLevel] = useState("");
   const [timeIn, setTimeIn] = useState("");
   const [timeOut, setTimeOut] = useState("");
   const [drivingHours, setDrivingHours] = useState("");
-  const [truckNumber, setTruckNumber] = useState("");
+  const [repairsNeeded, setRepairsNeeded] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -356,13 +298,14 @@ export default function PublicChecklistPage() {
         const data = JSON.parse(saved);
         if (data.sections) setSections(data.sections);
         if (data.driverName) setDriverName(data.driverName);
+        if (data.truckNumber) setTruckNumber(data.truckNumber);
         if (data.startMileage) setStartMileage(data.startMileage);
         if (data.endMileage) setEndMileage(data.endMileage);
-        if (data.role) setRole(data.role);
+        if (data.fuelLevel) setFuelLevel(data.fuelLevel);
         if (data.timeIn) setTimeIn(data.timeIn);
         if (data.timeOut) setTimeOut(data.timeOut);
         if (data.drivingHours) setDrivingHours(data.drivingHours);
-        if (data.truckNumber) setTruckNumber(data.truckNumber);
+        if (data.repairsNeeded) setRepairsNeeded(data.repairsNeeded);
       } catch {
         // ignore
       }
@@ -377,26 +320,28 @@ export default function PublicChecklistPage() {
         JSON.stringify({
           sections,
           driverName,
+          truckNumber,
           startMileage,
           endMileage,
-          role,
+          fuelLevel,
           timeIn,
           timeOut,
           drivingHours,
-          truckNumber,
+          repairsNeeded,
         }),
       );
     }
   }, [
     sections,
     driverName,
+    truckNumber,
     startMileage,
     endMileage,
-    role,
+    fuelLevel,
     timeIn,
     timeOut,
     drivingHours,
-    truckNumber,
+    repairsNeeded,
     submitted,
   ]);
 
@@ -427,8 +372,8 @@ export default function PublicChecklistPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!driverName.trim() || !role) {
-      toast.error("Please fill in all required fields including your role");
+    if (!driverName.trim()) {
+      toast.error("Please enter your driver name");
       return;
     }
 
@@ -455,7 +400,8 @@ export default function PublicChecklistPage() {
                 Number.parseInt(endMileage) - Number.parseInt(startMileage),
               )
             : undefined,
-        role: role as "Driver" | "Helper",
+        fuelLevel: fuelLevel || undefined,
+        repairsNeeded: repairsNeeded || undefined,
         sections,
         timestamp: Date.now(),
         totalItems,
@@ -480,13 +426,14 @@ export default function PublicChecklistPage() {
   const handleStartNew = () => {
     setSections(CHECKLIST_SECTIONS);
     setDriverName("");
+    setTruckNumber("");
     setStartMileage("");
     setEndMileage("");
-    setRole("");
+    setFuelLevel("");
     setTimeIn("");
     setTimeOut("");
     setDrivingHours("");
-    setTruckNumber("");
+    setRepairsNeeded("");
     setSubmitted(false);
     localStorage.removeItem(PROGRESS_KEY);
   };
@@ -498,6 +445,11 @@ export default function PublicChecklistPage() {
   );
   const progress =
     totalItems > 0 ? Math.round((checkedCount / totalItems) * 100) : 0;
+
+  // Index of the Driver Acknowledgment section (last section)
+  const acknowledgmentIndex = sections.findIndex(
+    (s) => s.title === "Driver Acknowledgment",
+  );
 
   if (submitted) {
     return (
@@ -520,16 +472,14 @@ export default function PublicChecklistPage() {
                 Driver:{" "}
                 <span className="text-accent font-bold">{driverName}</span>
               </p>
-              <p className="text-sm text-foreground">
-                Role:{" "}
-                <span
-                  className={`font-bold ${
-                    role === "Driver" ? "text-accent" : "text-primary"
-                  }`}
-                >
-                  {role}
-                </span>
-              </p>
+              {truckNumber && (
+                <p className="text-sm text-foreground">
+                  Truck #:{" "}
+                  <span className="font-bold text-primary">
+                    Truck {truckNumber}
+                  </span>
+                </p>
+              )}
               {timeIn && (
                 <p className="text-sm text-foreground">
                   Shift Start:{" "}
@@ -550,14 +500,6 @@ export default function PublicChecklistPage() {
                 <p className="text-sm text-foreground">
                   Driving Hours:{" "}
                   <span className="font-bold text-primary">{drivingHours}</span>
-                </p>
-              )}
-              {truckNumber && (
-                <p className="text-sm text-foreground">
-                  Truck #:{" "}
-                  <span className="font-bold text-primary">
-                    Truck {truckNumber}
-                  </span>
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
@@ -592,7 +534,7 @@ export default function PublicChecklistPage() {
                 Pre-Trip Checklist
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground font-medium mt-1">
-                28-ft Box Truck Inspection — Berks Bus Service
+                26-ft Box Truck Inspection — Berks Bus Service
               </p>
             </div>
           </div>
@@ -631,6 +573,7 @@ export default function PublicChecklistPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Driver Name */}
               <div className="space-y-2">
                 <Label htmlFor="driverName" className="font-semibold">
                   Driver Name *
@@ -646,6 +589,26 @@ export default function PublicChecklistPage() {
                   data-ocid="checklist.input"
                 />
               </div>
+
+              {/* Truck Number — directly under Driver Name */}
+              <div className="space-y-1.5">
+                <Label className="font-semibold">Truck Number</Label>
+                <select
+                  value={truckNumber}
+                  onChange={(e) => setTruckNumber(e.target.value)}
+                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                  data-ocid="checklist.select"
+                >
+                  <option value="">Select truck...</option>
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                    <option key={n} value={String(n)}>
+                      Truck {n}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Mileage Tracker */}
               <div className="space-y-2">
                 <Label className="font-semibold flex items-center gap-2">
                   🛣️ Mileage Tracker
@@ -702,42 +665,25 @@ export default function PublicChecklistPage() {
                     </div>
                   )}
               </div>
-              <div className="space-y-2">
-                <Label className="font-semibold">Role *</Label>
-                <fieldset
-                  className="flex gap-3 border-none p-0 m-0"
-                  aria-label="Select role"
+
+              {/* Fuel Level */}
+              <div className="space-y-1.5">
+                <Label className="font-semibold flex items-center gap-2">
+                  ⛽ Fuel Level
+                </Label>
+                <select
+                  value={fuelLevel}
+                  onChange={(e) => setFuelLevel(e.target.value)}
+                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                  data-ocid="checklist.select"
                 >
-                  <button
-                    type="button"
-                    onClick={() => setRole("Driver")}
-                    className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
-                      role === "Driver"
-                        ? "border-accent bg-accent text-accent-foreground shadow-md shadow-accent/25"
-                        : "border-border bg-background text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                    }`}
-                    data-ocid="checklist.radio"
-                  >
-                    🚛 Driver
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole("Helper")}
-                    className={`flex-1 py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
-                      role === "Helper"
-                        ? "border-primary bg-primary text-primary-foreground shadow-md shadow-primary/25"
-                        : "border-border bg-background text-muted-foreground hover:border-primary/50 hover:text-foreground"
-                    }`}
-                    data-ocid="checklist.toggle"
-                  >
-                    🤝 Helper
-                  </button>
-                </fieldset>
-                {!role && (
-                  <p className="text-xs text-muted-foreground">
-                    Please select your role before submitting
-                  </p>
-                )}
+                  <option value="">Select fuel level...</option>
+                  <option value="E">E — Empty</option>
+                  <option value="1/4">1/4</option>
+                  <option value="1/2">1/2</option>
+                  <option value="3/4">3/4</option>
+                  <option value="F">F — Full</option>
+                </select>
               </div>
 
               {/* Shift Times */}
@@ -787,37 +733,19 @@ export default function PublicChecklistPage() {
                 </p>
               </div>
 
-              {/* Driving Hours & Truck Number */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">Driving Hours</Label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.5"
-                    placeholder="e.g. 5.5"
-                    value={drivingHours}
-                    onChange={(e) => setDrivingHours(e.target.value)}
-                    className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
-                    data-ocid="checklist.input"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">Truck Number</Label>
-                  <select
-                    value={truckNumber}
-                    onChange={(e) => setTruckNumber(e.target.value)}
-                    className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
-                    data-ocid="checklist.select"
-                  >
-                    <option value="">Select truck...</option>
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
-                      <option key={n} value={String(n)}>
-                        Truck {n}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+              {/* Driving Hours */}
+              <div className="space-y-1.5">
+                <Label className="text-sm font-semibold">Driving Hours</Label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  placeholder="e.g. 5.5"
+                  value={drivingHours}
+                  onChange={(e) => setDrivingHours(e.target.value)}
+                  className="w-full rounded-xl border-2 border-border bg-background px-4 py-2.5 text-sm font-medium focus:outline-none focus:border-accent transition-colors"
+                  data-ocid="checklist.input"
+                />
               </div>
             </CardContent>
           </Card>
@@ -833,6 +761,7 @@ export default function PublicChecklistPage() {
             ).length;
             const sectionTotal = section.items.length;
             const allChecked = sectionCheckedCount === sectionTotal;
+            const isAcknowledgment = sectionIndex === acknowledgmentIndex;
 
             return (
               <Card
@@ -899,6 +828,27 @@ export default function PublicChecklistPage() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Repairs Needed textarea — only in Driver Acknowledgment section */}
+                  {isAcknowledgment && (
+                    <div className="mt-4 space-y-2">
+                      <Label
+                        htmlFor="repairsNeeded"
+                        className="font-semibold text-sm flex items-center gap-2"
+                      >
+                        🔧 Repairs Needed
+                      </Label>
+                      <textarea
+                        id="repairsNeeded"
+                        rows={4}
+                        placeholder="Describe any repairs or issues that need attention..."
+                        value={repairsNeeded}
+                        onChange={(e) => setRepairsNeeded(e.target.value)}
+                        className="w-full rounded-xl border-2 border-border bg-background px-4 py-3 text-sm font-medium focus:outline-none focus:border-accent transition-colors resize-y"
+                        data-ocid="checklist.textarea"
+                      />
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -938,7 +888,7 @@ export default function PublicChecklistPage() {
                 type="submit"
                 size="lg"
                 className="w-full text-lg font-bold bg-gradient-to-r from-accent to-chart-5 text-white hover:opacity-92 shadow-lg shadow-accent/30 py-6"
-                disabled={isSubmitting || !driverName.trim() || !role}
+                disabled={isSubmitting || !driverName.trim()}
                 data-ocid="checklist.submit_button"
               >
                 {isSubmitting ? (
